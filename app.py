@@ -194,17 +194,17 @@ if "osint_results" in st.session_state:
 
     # TAB 2: Social Matrix
     with tab2:
-        st.subheader("🌐 Matrix Media Sosial Precision Search (100% Dorking)")
-        st.caption("Menyajikan tautan pencarian terisolasi untuk menemukan profil asli kandidat secara instan tanpa terbentur authwall/404.")
+        st.subheader("🌐 Matrix Media Sosial (Direct & Dorking Search)")
+        st.caption("Pilih 'Direct Profil' untuk membuka situs secara langsung, atau 'Verifikasi via Google Dork' untuk mengecek indeks publik.")
         
         if res["social_res"]:
             df_s = pd.DataFrame(res["social_res"])
             st.dataframe(
-                df_s[["platform", "status_note", "url"]], 
+                df_s[["platform", "direct_url", "dork_url"]], 
                 column_config={
                     "platform": "Platform Target",
-                    "status_note": "Mode Investigasi",
-                    "url": st.column_config.LinkColumn("Buka Pencarian Presisi (Google Dork)")
+                    "direct_url": st.column_config.LinkColumn("Buka Direct Profil"),
+                    "dork_url": st.column_config.LinkColumn("Verifikasi via Google Dork")
                 },
                 use_container_width=True,
                 hide_index=True
