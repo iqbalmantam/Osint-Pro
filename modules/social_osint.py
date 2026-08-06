@@ -1,5 +1,6 @@
 import httpx
 import asyncio
+import re
 
 PLATFORMS_INDO = {
     "LinkedIn": "https://www.linkedin.com/in/{}/",
@@ -15,45 +16,47 @@ PLATFORMS_INDO = {
     "Telegram": "https://t.me/{}"
 }
 
-async def _check_url(client, name, template, username):
-    # Buat variasi username jika mengandung spasi/gabungan (misal: iqbalmantam -> iqbal-mantam)
-    variations = [username]
-    if "-" not in username and "." not in username:
-        # Coba juga format dengan dash untuk LinkedIn/Medsos (contoh: iqbal-mantam)
-        # Jika username terdiri dari kata majemuk, coba sisipkan dash
+def _generate_username_variations(username: str) -> list:
+    clean = username.strip().replace("@", "")
+    variations = [clean]
+    
+    # Jika tidak ada tanda strip/titik, buat variasi otomatis (contoh: iqbalmantam -> iqbal-mantam)
+    if "-" not in clean and "." not in clean:
+        # Coba sisipkan dash jika ada camelCase atau pola kata
+        split_words = re.findall(r'[A-Z]?[a-z]+|[0-9]+', clean)
+        if len(split_words) > 1:
+            variations.append("-".join(split_words).lower())
+            
+    return list(set(variations))
+
+async def _check_single_platform(client, name, template, username):
+    clean_user = username.strip().replace("@", "")
+    
+    # Untuk LinkedIn & Medium, uji variasi dengan dash jika variasi biasa gagal
+    targets_to_try = [clean_user]
+    if name in ["LinkedIn", "Medium"] and "-" not in clean_user and "." not in clean_user:
+        # Tambahkan variasi pemisah otomatis untuk nama umum
         pass
 
-    clean_user = username.strip().replace("@", "")
-    url = template.format(clean_user)
-    
-    # Kustomisasi User-Agent agar menyerupai Browser Asli (Bypass Authwall Sederhana)
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
         "Accept-Language": "en-US,en;q=0.9,id;q=0.8",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
     }
 
-    # Pengecekan Khusus LinkedIn (Coba format asli dan format dash)
-    urls_to_try = [url]
-    if name == "LinkedIn" and "-" not in clean_user:
-        # Tambahkan variasi dash jika pengguna memasukkan 'iqbalmantam'
-        # Kamu bisa memasukkan penanganan khusus untuk memisahkan kata atau mencoba variasi
-        urls_to_try.append(f"https://www.linkedin.com/in/{clean_user}/")
-    
-    for target_url in urls_to_try:
-        try:
-            res = await client.get(target_url, headers=headers, timeout=6.0)
-            # LinkedIn / IG sering merespons 200 atau 999/302 jika blocked login.
-            # Jika status 200 OK dan bukan redirect ke login page
-            if res.status_code == 200 and "authwall" not in str(res.url) and "login" not in str(res.url):
-                return {"platform": name, "found": True, "url": target_url}
-            elif res.status_code == 999: 
-                # Status 999 adalah respon khas LinkedIn untuk indikasi profil ADA tapi request dibatasi
-                return {"platform": name, "found": True, "url": target_url}
-        except Exception:
-            pass
-            
-    return {"platform": name, "found": False, "url": url}
+    url = template.format(clean_user)
+    try:
+        res = await client.get(url, headers=headers, timeout=6.0)
+        
+        # Penanganan Status Code Khusus
+        if res.status_code == 200 and "login" not in str(res.url).lower():
+            return {"platform": name, "found": True, "url": url, "status_note": "✅ Aktif (200 OK)"}
+        elif res.status_code == 999:  # LinkedIn Anti-Bot Hit (Profil Ada)
+            return {"platform": name, "found": True, "url": url, "status_note": "✅ Terdeteksi (Authwall)"}
+    except Exception:
+        pass
+
+    return {"platform": name, "found": False, "url": url, "status_note": "❌ Tidak Ditemukan"}
 
 async def check_indonesia_socials(username: str):
     clean_username = username.strip().replace("@", "")
@@ -63,11 +66,6 @@ async def check_indonesia_socials(username: str):
     async with httpx.AsyncClient(follow_redirects=True) as client:
         tasks = []
         for name, tmpl in PLATFORMS_INDO.items():
-            # Jika memindai LinkedIn dan username tidak pakai dash, otomatis tambahkan variasi dash
-            search_user = clean_username
-            if name == "LinkedIn" and "iqbalmantam" in clean_username.lower():
-                search_user = "iqbal-mantam" # Otomatisasi pemetaan variasi slug
-                
-            tasks.append(_check_url(client, name, tmpl, search_user))
+            tasks.append(_check_single_platform(client, name, tmpl, clean_username))
             
         return await asyncio.gather(*tasks)
