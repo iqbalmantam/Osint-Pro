@@ -1,23 +1,12 @@
 from urllib.parse import quote_plus
 
-DISPOSABLE_DOMAINS = [
-    "tempmail.com", "guerrillamail.com", "10minutemail.com", 
-    "trashmail.com", "yopmail.com", "mailinator.com", "sharklasers.com"
-]
-
-def check_email_disposable(email: str):
-    if "@" in email:
-        domain = email.split("@")[1].lower()
-        if domain in DISPOSABLE_DOMAINS:
-            return True, domain
-    return False, email.split("@")[1] if "@" in email else ""
-
-def generate_indonesia_dorks(email: str, phone_info: dict, username: str = "", full_name: str = ""):
+def generate_indonesia_dorks(email: str = "", phone_info: dict = None, username: str = "", full_name: str = ""):
     dorks = []
-    
-    if full_name:
+    target_name = full_name.strip() if full_name else username.strip()
+
+    if target_name:
         # 1. Verification PDDikti & Academic Records
-        q_edu = f'site:pddikti.kemdikbud.go.id "{full_name.strip()}" OR "{full_name.strip()}" "ijazah" OR "wisuda" OR "skck"'
+        q_edu = f'site:pddikti.kemdikbud.go.id "{target_name}" OR "{target_name}" "ijazah" OR "wisuda" OR "skck"'
         dorks.append({
             "title": "🎓 Verifikasi Akademik & PDDikti (Pangkalan Data Pendidikan Tinggi)",
             "query": q_edu,
@@ -25,7 +14,7 @@ def generate_indonesia_dorks(email: str, phone_info: dict, username: str = "", f
         })
         
         # 2. Mahkamah Agung & Court Registry
-        q_legal = f'"{full_name.strip()}" site:mahkamahagung.go.id OR "putusan mahkamah agung" OR "terpidana" OR "tergugat"'
+        q_legal = f'"{target_name}" site:mahkamahagung.go.id OR "putusan mahkamah agung" OR "terpidana" OR "tergugat"'
         dorks.append({
             "title": "⚖️ Audit Hukum (Direktori Putusan Mahkamah Agung & SIPP PN)",
             "query": q_legal,
@@ -33,11 +22,27 @@ def generate_indonesia_dorks(email: str, phone_info: dict, username: str = "", f
         })
 
         # 3. OJK & Financial Compliance Check
-        q_fin = f'"{full_name.strip()}" "satgas pasti" OR "ojk" OR "penipuan" OR "investasi bodong" OR "dftr_hitam"'
+        q_fin = f'"{target_name}" "satgas pasti" OR "ojk" OR "penipuan" OR "investasi bodong" OR "dftr_hitam"'
         dorks.append({
             "title": "🏦 Rekam Jejak Keuangan & Integritas Finansial (OJK / Satgas Pasti)",
             "query": q_fin,
             "link": f"https://www.google.com/search?q={quote_plus(q_fin)}"
+        })
+
+        # 4. Komunitas & Forum Lokal Indonesia (FITUR BARU)
+        q_forum = f'site:kaskus.co.id OR site:id.quora.com OR site:blogspot.com OR site:wordpress.com "{target_name}"'
+        dorks.append({
+            "title": "💬 Jejak Diskusi Forum & Komunitas Lokal (Kaskus, Quora, Blogspot, WordPress)",
+            "query": q_forum,
+            "link": f"https://www.google.com/search?q={quote_plus(q_forum)}"
+        })
+
+        # 5. E-Commerce & Marketplace Activity (FITUR BARU)
+        q_market = f'site:tokopedia.com OR site:shopee.co.id OR site:olx.co.id "{target_name}"'
+        dorks.append({
+            "title": "🛒 Jejak E-Commerce & Marketplace (Tokopedia, Shopee, OLX)",
+            "query": q_market,
+            "link": f"https://www.google.com/search?q={quote_plus(q_market)}"
         })
 
     if email:
