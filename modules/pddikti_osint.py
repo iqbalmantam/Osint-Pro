@@ -32,10 +32,9 @@ def generate_pddikti_dorks(target_input, company_or_city=""):
       "link": f"https://www.google.com/search?q={quote_plus(q_pddikti)}&nfpr=1",
   })
 
-  # 2. Skripsi & Repository Kampus (.ac.id)
+  # 2. Skripsi & Repository Kampus (.ac.id) - Menggunakan site:ac.id yang valid
   q_repo = (
-      "site:*.ac.id (filetype:pdf OR filetype:doc)"
-      f" {formatted_target}{extra_str}"
+      f"site:ac.id (filetype:pdf OR filetype:doc) {formatted_target}{extra_str}"
   )
   dorks.append({
       "title": (
