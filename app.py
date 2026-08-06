@@ -16,39 +16,15 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS: Sembunyikan elemen bawaan Streamlit secara absolut
+# Custom CSS Versi Stabil Awal
 st.markdown("""
     <style>
-    /* 1. Sembunyikan menu hamburger & footer bawaan */
-    #MainMenu { display: none !important; }
-    footer { display: none !important; }
+    /* Sembunyikan menu bawaan & footer Streamlit */
+    #MainMenu { visibility: hidden; }
+    footer { visibility: hidden; }
+    header[data-testid="stHeader"] { visibility: hidden; }
 
-    /* 2. Sembunyikan total Toolbar Cloud & Tombol GitHub/Share/Deploy di kanan atas */
-    header[data-testid="stHeader"] {
-        background-color: transparent !important;
-    }
-    
-    div[data-testid="stToolbar"],
-    .stAppDeployButton,
-    button[kind="header"] {
-        display: none !important;
-        visibility: hidden !important;
-    }
-
-    /* 3. Pastikan tombol toggle sidebar (>>) di kiri tetap tampil dan bisa diklik */
-    [data-testid="stSidebarCollapsedControl"],
-    button[data-testid="stSidebarCollapsedControl"],
-    [data-testid="collapsedControl"] {
-        display: flex !important;
-        visibility: visible !important;
-        z-index: 999999 !important;
-        background-color: #161b22 !important;
-        border: 1px solid #30363d !important;
-        border-radius: 8px !important;
-        color: #f0f6fc !important;
-    }
-
-    /* 4. Watermark di tengah bawah */
+    /* Watermark di tengah bawah */
     .watermark {
         position: fixed;
         bottom: 15px;
