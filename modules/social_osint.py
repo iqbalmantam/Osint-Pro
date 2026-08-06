@@ -49,33 +49,36 @@ PLATFORMS_CONFIG = {
     }
 }
 
-async def _verify_direct_url(client, name, url):
+async def _verify_direct_url(client, name, url, clean_user):
     """Mengecek ketersediaan profil secara otomatis di latar belakang."""
     if url == "#" or name == "LinkedIn":
         return "🟡 Perlu Diulas Manual"
 
+    # Browser User-Agent Lengkap untuk Menginduksi Respons Asli
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-        "Accept-Language": "en-US,en;q=0.9",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        "Accept-Language": "id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8"
     }
 
     try:
-        res = await client.get(url, headers=headers, timeout=5.0, follow_redirects=True)
+        res = await client.get(url, headers=headers, timeout=4.0, follow_redirects=True)
         res_text = res.text.lower()
 
-        # Deteksi Halaman Kosong/Error khas
+        # Deteksi Khusus Halaman Tidak Ditemukan
         is_404 = (
             res.status_code == 404 or 
             "page doesn’t exist" in res_text or 
             "page doesn't exist" in res_text or 
             "couldn't find this account" in res_text or
             "couldn’t find this account" in res_text or
-            "sorry, this page isn't available" in res_text
+            "sorry, this page isn't available" in res_text or
+            "this user does not exist" in res_text
         )
 
         if is_404:
             return "🔴 Pasti Tidak Ada"
-        elif res.status_code == 200 and "login" not in str(res.url).lower():
+        elif res.status_code == 200 and "login" not in str(res.url).lower() and clean_user in res_text:
             return "🟢 Terverifikasi Ada"
         else:
             return "🟡 Perlu Diulas Manual"
@@ -106,7 +109,7 @@ async def _build_entry(client, name, cfg, raw_input):
     dork_link = f"https://www.google.com/search?q={quote(dork_query)}"
 
     # Verifikasi Silang Otomatis (HTTP Check)
-    status_label = await _verify_direct_url(client, name, direct_link)
+    status_label = await _verify_direct_url(client, name, direct_link, clean_no_space)
 
     return {
         "platform": name,
