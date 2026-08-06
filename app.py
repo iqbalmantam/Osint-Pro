@@ -16,10 +16,31 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS: Hanya untuk Watermark tanpa menyembunyikan elemen struktur Streamlit
+# Custom CSS: Sembunyikan Toolbar Kanan (Share, Star, Edit, GitHub) TANPA mematikan tombol Sidebar (>>)
 st.markdown("""
     <style>
-    /* Watermark di tengah bawah */
+    /* 1. Sembunyikan menu bawaan & footer Streamlit */
+    #MainMenu { display: none !important; }
+    footer { display: none !important; }
+
+    /* 2. Sembunyikan khusus elemen toolbar kanan (Share, Star, Edit, GitHub, titik tiga) */
+    div[data-testid="stToolbarActions"],
+    div[data-testid="stToolbar"] {
+        display: none !important;
+        visibility: hidden !important;
+    }
+
+    /* 3. Pastikan header transparan dan tombol sidebar (>>) di kiri atas tetap AKTIF */
+    header[data-testid="stHeader"] {
+        background-color: transparent !important;
+    }
+    
+    [data-testid="stSidebarCollapsedControl"] {
+        display: flex !important;
+        visibility: visible !important;
+    }
+
+    /* 4. Watermark di tengah bawah */
     .watermark {
         position: fixed;
         bottom: 15px;
