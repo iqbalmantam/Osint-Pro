@@ -9,11 +9,41 @@ from modules.breach_checker import check_data_breach
 from modules.dork_indonesia import generate_indonesia_dorks
 
 st.set_page_config(
-    page_title="Indonesia Candidate OSINT Master",
+    page_title="Background Check OSINT",
     page_icon="🛡️",
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+# Custom CSS: Menyembunyikan logo GitHub & menambahkan watermark Iqbal Mantam
+st.markdown("""
+    <style>
+    /* Sembunyikan Header bawaan Streamlit (Logo GitHub, Share, Star) */
+    header[data-testid="stHeader"] {
+        visibility: hidden;
+        height: 0%;
+    }
+    
+    /* Custom Watermark Melayang di Kanan Bawah */
+    .watermark {
+        position: fixed;
+        bottom: 15px;
+        right: 20px;
+        opacity: 0.7;
+        font-size: 13px;
+        font-weight: 600;
+        color: #8b949e;
+        background-color: rgba(22, 27, 34, 0.85);
+        padding: 6px 14px;
+        border-radius: 20px;
+        border: 1px solid #30363d;
+        z-index: 99999;
+        pointer-events: none;
+    }
+    </style>
+    
+    <div class="watermark">Created by iqbalmantam</div>
+""", unsafe_allow_html=True)
 
 st.title("🛡️ Indonesia Candidate OSINT Intelligence Engine")
 st.caption("Platform Background Check Kandidat (100% Real-Time & Live Connection)")
@@ -29,6 +59,9 @@ with st.sidebar:
     
     st.markdown("---")
     btn_submit = st.button("🚀 Jalankan Investigasi OSINT", type="primary", use_container_width=True)
+
+    # Watermark Tambahan di bagian Bawah Sidebar
+    st.markdown("<br><br><div style='text-align: center; color: #8b949e; font-size: 12px;'>Engine OSINT v2.0<br><b>Created by iqbalmantam</b></div>", unsafe_allow_html=True)
 
 if btn_submit:
     if not email_in or not phone_in:
