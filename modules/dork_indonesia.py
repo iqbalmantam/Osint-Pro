@@ -65,6 +65,6 @@ def generate_indonesia_dorks(email: str = "", phone_info: dict = None, username:
 
 def generate_telecom_dorks(phone_intl: str):
     return {
-        "getcontact": "https://www.getcontact.com/en/unbind",
+        "getcontact": "https://web.getcontact.com/",
         "truecaller": f"https://www.truecaller.com/search/id/{phone_intl}"
     }
