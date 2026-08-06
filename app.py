@@ -16,15 +16,25 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS Versi Stabil Awal
+# Custom CSS: Sembunyikan Toolbar Kanan (GitHub/Fork/Share) TANPA mematikan tombol Sidebar (>)
 st.markdown("""
     <style>
-    /* Sembunyikan menu bawaan & footer Streamlit */
-    #MainMenu { visibility: hidden; }
-    footer { visibility: hidden; }
-    header[data-testid="stHeader"] { visibility: hidden; }
+    /* 1. Sembunyikan menu bawaan & footer Streamlit */
+    #MainMenu { display: none !important; }
+    footer { display: none !important; }
 
-    /* Watermark di tengah bawah */
+    /* 2. Sembunyikan Toolbar kanan (Deploy/GitHub/Share/Edit) */
+    div[data-testid="stToolbar"] { display: none !important; }
+    .stAppDeployButton { display: none !important; }
+    button[title="View source on GitHub"] { display: none !important; }
+
+    /* 3. Header dibuat transparan agar tombol sidebar (>) di pojok kiri atas tetap berfungsi */
+    header[data-testid="stHeader"] {
+        background-color: transparent !important;
+        visibility: visible !important;
+    }
+
+    /* 4. Watermark di tengah bawah */
     .watermark {
         position: fixed;
         bottom: 15px;
