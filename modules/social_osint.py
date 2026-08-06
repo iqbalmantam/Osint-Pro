@@ -2,7 +2,6 @@ import httpx
 import asyncio
 from urllib.parse import quote
 
-# Template Dorking Fleksibel
 DORK_DOMAINS = {
     "LinkedIn": "linkedin.com/in/",
     "Instagram": "instagram.com",
@@ -17,24 +16,31 @@ DORK_DOMAINS = {
     "Telegram": "t.me"
 }
 
-def build_smart_dork_query(domain: str, raw_input: str) -> str:
-    clean = raw_input.strip().replace("@", "")
+def generate_multi_anchor_query(domain: str, raw_username: str, email: str = "") -> str:
+    clean_name = raw_username.strip().replace("@", "")
+    queries_parts = []
     
-    # Buat variasi username gabungan (misal: "Rizki Auliyah Rahma" -> "rizkiauliyahrahma")
-    no_space = "".join(clean.lower().split())
-    dash_space = "-".join(clean.lower().split())
-    
-    # Jika input mengandung spasi, cari gabungan NAMA LENGKAP ATAU USERNAME KANDIDAT
-    if " " in clean:
-        query = f'site:{domain} ({clean} OR "{no_space}" OR "{dash_space}")'
-    else:
-        query = f'site:{domain} "{clean}"'
-        
-    return query
+    # Extract Email Prefix
+    email_prefix = ""
+    if email and "@" in email:
+        email_prefix = email.split("@")[0].strip().lower()
 
-async def _build_dork_entry(name, domain, raw_input):
-    clean_input = raw_input.strip().replace("@", "")
-    if not clean_input:
+    if clean_name:
+        no_space = "".join(clean_name.lower().split())
+        dash_space = "-".join(clean_name.lower().split())
+        queries_parts.append(f'"{clean_name}"')
+        queries_parts.append(f'"{no_space}"')
+        queries_parts.append(f'"{dash_space}"')
+
+    if email_prefix and email_prefix not in queries_parts:
+        queries_parts.append(f'"{email_prefix}"')
+
+    combined = " OR ".join(queries_parts) if queries_parts else f'"{clean_name}"'
+    return f'site:{domain} ({combined})'
+
+async def _build_dork_entry(name, domain, raw_username, email):
+    clean_input = raw_username.strip().replace("@", "")
+    if not clean_input and not email:
         return {
             "platform": name, 
             "found": False, 
@@ -42,23 +48,19 @@ async def _build_dork_entry(name, domain, raw_input):
             "status_note": "❌ Input Kosong"
         }
 
-    query = build_smart_dork_query(domain, clean_input)
+    query = generate_multi_anchor_query(domain, clean_input, email)
     google_search_url = f"https://www.google.com/search?q={quote(query)}"
 
     return {
         "platform": name,
         "found": True,
         "url": google_search_url,
-        "status_note": f"🔎 Smart Dork: {clean_input}"
+        "status_note": f"🔎 Deep Dork Multi-Anchor"
     }
 
-async def check_indonesia_socials(username: str):
-    if not username or not username.strip():
-        return []
-        
+async def check_indonesia_socials(username: str, email: str = ""):
     tasks = [
-        _build_dork_entry(name, domain, username)
+        _build_dork_entry(name, domain, username, email)
         for name, domain in DORK_DOMAINS.items()
     ]
-    
     return await asyncio.gather(*tasks)
