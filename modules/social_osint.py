@@ -51,13 +51,13 @@ PLATFORMS_CONFIG = {
 
 async def _verify_direct_url(client, name, url, clean_user):
     """Mengecek ketersediaan profil secara otomatis di latar belakang."""
-    # Platform yang wajib ulasan manual karena Authwall ketat
-    if url == "#" or name in ["LinkedIn", "Instagram", "Threads"]:
+    # Hanya LinkedIn yang wajib manual karena authwall pencarian
+    if url == "#" or name == "LinkedIn":
         return "🟡 Perlu Diulas Manual"
 
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-        "Accept-Language": "id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7",
+        "Accept-Language": "en-US,en;q=0.9,id;q=0.8",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
     }
 
@@ -65,26 +65,30 @@ async def _verify_direct_url(client, name, url, clean_user):
         res = await client.get(url, headers=headers, timeout=5.0, follow_redirects=True)
         res_text = res.text.lower()
 
-        # Handling Khusus TikTok: Pengecekan berbasis Struktur Data Objek Profil
+        # Handling Khusus TikTok
         if name == "TikTok":
             if res.status_code == 200 and ("uniqueid" in res_text or "userinfo" in res_text or clean_user in res_text):
                 return "🟢 Terverifikasi Ada"
-            elif res.status_code == 404 or "statuscode\":10221" in res_text:
+            elif res.status_code == 404 or 'statuscode":10221' in res_text:
                 return "🔴 Pasti Tidak Ada"
             else:
                 return "🟡 Perlu Diulas Manual"
 
-        # Handling Khusus Platform Lain
+        # Deteksi Halaman Kosong/Error untuk Instagram, Threads, X, Spotify, Dev.to, Medium, dll.
         is_404 = (
             res.status_code == 404 or 
+            "profile isn't available" in res_text or
+            "profile isn’t available" in res_text or
             "page doesn’t exist" in res_text or 
             "page doesn't exist" in res_text or
-            "this user does not exist" in res_text
+            "sorry, this page isn't available" in res_text or
+            "this user does not exist" in res_text or
+            "couldn't find this account" in res_text
         )
 
         if is_404:
             return "🔴 Pasti Tidak Ada"
-        elif res.status_code == 200 and clean_user in res_text:
+        elif res.status_code == 200 and ("login" not in str(res.url).lower() or clean_user in res_text):
             return "🟢 Terverifikasi Ada"
         else:
             return "🟡 Perlu Diulas Manual"
