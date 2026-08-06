@@ -16,28 +16,30 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS: Sembunyikan Toolbar Kanan (Share, Star, Edit, GitHub) TANPA mematikan tombol Sidebar (>>)
+# Custom CSS: Hanya sembunyikan ikon toolbar kanan tanpa mematikan tombol sidebar (>>)
 st.markdown("""
     <style>
     /* 1. Sembunyikan menu bawaan & footer Streamlit */
-    #MainMenu { display: none !important; }
-    footer { display: none !important; }
+    #MainMenu { visibility: hidden; }
+    footer { visibility: hidden; }
 
-    /* 2. Sembunyikan khusus elemen toolbar kanan (Share, Star, Edit, GitHub, titik tiga) */
+    /* 2. Target SPESIFIK ke tombol-tombol kanan (Share, Edit, GitHub, Star) saja */
     div[data-testid="stToolbarActions"],
-    div[data-testid="stToolbar"] {
+    header[data-testid="stHeader"] .stActionButton,
+    header[data-testid="stHeader"] a[href*="github.com"] {
         display: none !important;
         visibility: hidden !important;
     }
 
-    /* 3. Pastikan header transparan dan tombol sidebar (>>) di kiri atas tetap AKTIF */
+    /* 3. Pastikan header tetap transparan & tombol sidebar (>>) dipaksa TAMPIL */
     header[data-testid="stHeader"] {
-        background-color: transparent !important;
+        background: transparent !important;
     }
-    
+
     [data-testid="stSidebarCollapsedControl"] {
         display: flex !important;
         visibility: visible !important;
+        opacity: 1 !important;
     }
 
     /* 4. Watermark di tengah bawah */
