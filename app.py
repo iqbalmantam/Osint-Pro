@@ -9,7 +9,7 @@ from modules.breach_checker import check_data_breach
 from modules.dork_indonesia import generate_indonesia_dorks
 
 st.set_page_config(
-    page_title="Indonesia Candidate OSINT Master",
+    page_title="Background Check",
     page_icon="🛡️",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -47,8 +47,8 @@ st.markdown("""
     <div class="watermark">Created by iqbalmantam</div>
 """, unsafe_allow_html=True)
 
-st.title("🛡️ Indonesia Candidate OSINT Intelligence Engine")
-st.caption("Platform Background Check Kandidat (100% Real-Time & Live Connection)")
+st.title("🛡️ Background Check - OSINT")
+st.caption("Platform Background Check (100% Real-Time & Live Connection)")
 st.divider()
 
 # Sidebar Input
