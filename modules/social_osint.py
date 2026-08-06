@@ -20,13 +20,10 @@ def clean_slug(raw_username: str, platform: str) -> str:
     """Membersihkan input username dari spasi dan karakter ilegal URL."""
     username = raw_username.strip().replace("@", "")
     
-    # Jika input mengandung spasi (misal: "Rizki Auliyah Rahma")
     if " " in username:
         if platform in ["LinkedIn", "Medium"]:
-            # LinkedIn & Medium menggunakan tanda hubung (e.g. rizki-auliyah-rahma)
             return "-".join(username.lower().split())
         else:
-            # Platform lain biasanya tanpa spasi/di-combine (e.g. rizkiauliyahrahma)
             return "".join(username.lower().split())
             
     return username.lower()
@@ -45,13 +42,25 @@ async def _check_url(client, name, template, raw_username):
 
     try:
         res = await client.get(url, headers=headers, timeout=6.0)
-        # Jika status 200 OK atau 999 (Anti-bot hit khas LinkedIn jika profil valid)
-        if (res.status_code == 200 and "404" not in str(res.url) and "login" not in str(res.url).lower()) or res.status_code == 999:
+        res_text = res.text.lower()
+        
+        # Deteksi Validasi Khusus LinkedIn & General 404 Pages
+        is_404_page = "page doesn’t exist" in res_text or "page doesn't exist" in res_text or "404" in str(res.url)
+        
+        if res.status_code == 200 and not is_404_page and "login" not in str(res.url).lower():
             return {"platform": name, "found": True, "url": url, "status_note": "✅ Aktif / Terdeteksi"}
+        elif res.status_code == 999 and name == "LinkedIn":
+            # Respon khas LinkedIn jika profil ADA tetapi dibatasi akses bot
+            return {"platform": name, "found": True, "url": url, "status_note": "✅ Terdeteksi (LinkedIn)"}
     except Exception:
         pass
 
-    return {"platform": name, "found": False, "url": url, "status_note": "❌ Tidak Ditemukan"}
+    # Jika URL langsung 404 (khusus LinkedIn), arahkan fallback link ke Google Search LinkedIn
+    fallback_url = url
+    if name == "LinkedIn" and " " in raw_username:
+        fallback_url = f"https://www.google.com/search?q={quote('site:linkedin.com/in/ ' + raw_username)}"
+
+    return {"platform": name, "found": False, "url": fallback_url, "status_note": "❌ Tidak Ditemukan"}
 
 async def check_indonesia_socials(username: str):
     if not username or not username.strip():
