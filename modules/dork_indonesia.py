@@ -60,12 +60,11 @@ def generate_indonesia_dorks(email_in, phone_data, username_in, name_in, city_in
     return dorks
 
 def generate_telecom_dorks(phone_intl):
+    """Membangun tautan eksternal lookup caller ID publik & direct portal."""
     clean_phone = phone_intl.replace("+", "").replace(" ", "").strip()
-    
-    getcontact_dork = f'site:getcontact.com "{clean_phone}" OR "{phone_intl}"'
-    getcontact_dork_url = f"https://www.google.com/search?q={quote_plus(getcontact_dork)}&nfpr=1"
     
     return {
         "truecaller": f"https://www.truecaller.com/search/id/{clean_phone}",
-        "getcontact": getcontact_dork_url
+        "getcontact": f"https://www.getcontact.com/en/know-who-is-calling?number=%2B{clean_phone}",
+        "syncme": f"https://sync.me/search/?number={clean_phone}"
     }
