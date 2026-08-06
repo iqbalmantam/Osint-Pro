@@ -16,18 +16,15 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS: Bersih tanpa mematikan struktur bawaan Streamlit
+# Custom CSS Versi Stabil Awal
 st.markdown("""
     <style>
-    /* 1. Sembunyikan footer & menu default yang tidak diperlukan */
-    #MainMenu { display: none !important; }
-    footer { display: none !important; }
+    /* Sembunyikan menu bawaan & footer Streamlit */
+    #MainMenu { visibility: hidden; }
+    footer { visibility: hidden; }
+    header[data-testid="stHeader"] { visibility: hidden; }
 
-    /* 2. Sembunyikan toolbar kanan (Share/Edit/GitHub) tanpa merusak kontrol sidebar */
-    div[data-testid="stToolbar"] { display: none !important; }
-    .stAppDeployButton { display: none !important; }
-
-    /* 3. Watermark di tengah bawah */
+    /* Watermark di tengah bawah */
     .watermark {
         position: fixed;
         bottom: 15px;
@@ -50,19 +47,8 @@ st.markdown("""
     <div class="watermark">Created by iqbalmantam</div>
 """, unsafe_allow_html=True)
 
-# Toggle Manual Sidebar (Solusi Khusus HP)
-if "sidebar_state" not in st.session_state:
-    st.session_state.sidebar_state = "expanded"
-
 st.title("🛡️ Background Check - OSINT")
 st.caption("Platform Background Check Kandidat (100% Real-Time & Live Connection)")
-
-# Tombol cadangan jika dibuka dari HP dan sidebar tertutup
-col_btn, _ = st.columns([1, 3])
-with col_btn:
-    if st.button("📌 Buka / Tutup Input Form"):
-        st.write(" Silakan ketuk ikon panah **`>`** atau **`>>`** di pojok kiri atas/bawah untuk membuka form input.")
-
 st.divider()
 
 # Sidebar Input
@@ -216,7 +202,7 @@ if "osint_results" in st.session_state:
         if res.get("social_res"):
             df_s = pd.DataFrame(res["social_res"])
             
-            # Pengecekan defensif untuk mencegah KeyError
+            # Pastikan kolom wajib ada (menghindari KeyError jika session_state menggunakan data lama)
             expected_cols = ["platform", "status_check", "direct_url", "dork_url"]
             for col in expected_cols:
                 if col not in df_s.columns:
