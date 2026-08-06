@@ -16,13 +16,29 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS: Menyembunyikan header bawaan Streamlit & Watermark di tengah bawah
+# Custom CSS: Sembunyikan menu bawaan Streamlit tapi tampilkan tombol Sidebar (>) di HP
 st.markdown("""
     <style>
-    header[data-testid="stHeader"] {
-        visibility: hidden;
-        height: 0%;
+    /* Sembunyikan menu hamburger bawaan & footer Streamlit */
+    #MainMenu { visibility: hidden; }
+    footer { visibility: hidden; }
+    header[data-testid="stHeader"] { background: transparent !important; }
+
+    /* Pastikan tombol pembuka sidebar (ikon >) di HP tetap kelihatan dan bisa diklik */
+    div[data-testid="stSidebarCollapsedControl"] {
+        visibility: visible !important;
+        display: block !important;
+        z-index: 999999 !important;
     }
+    button[data-testid="stSidebarCollapsedControl"] {
+        visibility: visible !important;
+        background-color: #161b22 !important;
+        border: 1px solid #30363d !important;
+        border-radius: 8px !important;
+        color: #f0f6fc !important;
+    }
+
+    /* Watermark di tengah bawah */
     .watermark {
         position: fixed;
         bottom: 15px;
@@ -62,7 +78,7 @@ with st.sidebar:
 
     st.markdown("<br><br><div style='text-align: center; color: #8b949e; font-size: 12px;'>Engine OSINT v3.0<br><b>Created by iqbalmantam</b></div>", unsafe_allow_html=True)
 
-# Proses Data saat Tombol Di-klik & Simpan ke Session State agar Tampilan Bertahan Saat Download
+# Proses Data saat Tombol Di-klik & Simpan ke Session State
 if btn_submit:
     if not email_in or not phone_in:
         st.error("⚠️ Email dan Nomor HP Wajib Diisi sebagai Primary Anchor Key!")
@@ -81,7 +97,7 @@ if btn_submit:
         telecom_links = generate_telecom_dorks(phone_data["intl_format"])
 
         # Risk Scoring Engine
-        active_social_count = len([s for s in social_res if s.get("found")]) if social_res else 0
+        active_social_count = len([s for s in social_res if s.get("status_check") == "🟢 Terverifikasi Ada"]) if social_res else 0
         has_github = identity_res.get("github", {}).get("found", False)
         has_gravatar = identity_res.get("gravatar", {}).get("found", False)
         is_breached = breach_res.get("breached", False)
@@ -161,7 +177,7 @@ if "osint_results" in st.session_state:
         st.markdown(f"* 💬 [Buka Live Chat WhatsApp Kandidat]({res['phone_data']['wa_link']})")
         st.markdown(f"* ✈️ [Cek Profil Telegram via Phone Number]({res['phone_data']['telegram_link']})")
         st.markdown(f"* 📞 [Pindai Tags/Nama Kontak via Truecaller]({res['telecom_links']['truecaller']})")
-        st.markdown(f"* 📇 [Akses GetContact Unbind/Lookup Page]({res['telecom_links']['getcontact']})")
+        st.markdown(f"* 📇 [Akses GetContact Web Portal]({res['telecom_links']['getcontact']})")
         
         st.divider()
         
@@ -200,7 +216,7 @@ if "osint_results" in st.session_state:
         if res.get("social_res"):
             df_s = pd.DataFrame(res["social_res"])
             
-            # Pastikan kolom wajib ada (menghindari KeyError jika session_state menggunakan data lama)
+            # Pengecekan defensif untuk mencegah KeyError
             expected_cols = ["platform", "status_check", "direct_url", "dork_url"]
             for col in expected_cols:
                 if col not in df_s.columns:
