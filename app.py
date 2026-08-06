@@ -16,42 +16,24 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS: Menyembunyikan Fork/GitHub Logo TANPA merusak tombol Toggle Sidebar di HP
+# Custom CSS: Hanya sembunyikan Fork/GitHub/Footer TANPA menyembunyikan header atau kontrol sidebar
 st.markdown("""
     <style>
     /* 1. Sembunyikan Footer & Menu Hamburger Bawaan */
-    #MainMenu { visibility: hidden !important; }
-    footer { visibility: hidden !important; }
+    #MainMenu { display: none !important; }
+    footer { display: none !important; }
 
-    /* 2. Sembunyikan khusus tombol Fork & GitHub Logo di kanan atas */
-    div[data-testid="stToolbar"] {
-        visibility: hidden !important;
-        display: none !important;
-    }
-    .stAppDeployButton {
-        display: none !important;
-    }
+    /* 2. Sembunyikan khusus tombol Fork, Deploy, dan GitHub Icon di toolbar kanan atas */
+    div[data-testid="stToolbar"] { display: none !important; }
+    .stAppDeployButton { display: none !important; }
+    button[title="View source on GitHub"] { display: none !important; }
 
-    /* 3. Pastikan Header tidak memblokir tombol toggle bawaan Streamlit */
+    /* 3. Buat background header transparan agar menyatu dengan tema */
     header[data-testid="stHeader"] {
-        background: transparent !important;
-        z-index: 1 !important;
+        background-color: transparent !important;
     }
 
-    /* 4. Tampilkan & Tebalkan Tombol Pembuka Sidebar (>>) di HP & PC */
-    [data-testid="stSidebarCollapsedControl"],
-    button[data-testid="stSidebarCollapsedControl"],
-    div[data-testid="collapsedControl"] {
-        visibility: visible !important;
-        display: flex !important;
-        z-index: 999999 !important;
-        background-color: #161b22 !important;
-        border: 1px solid #30363d !important;
-        border-radius: 8px !important;
-        color: #f0f6fc !important;
-    }
-
-    /* 5. Watermark di tengah bawah */
+    /* 4. Watermark di tengah bawah */
     .watermark {
         position: fixed;
         bottom: 15px;
