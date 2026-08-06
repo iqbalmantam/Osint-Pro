@@ -16,28 +16,18 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS: Hanya sembunyikan menu/footer/toolbar tanpa mematikan tombol sidebar (>)
+# Custom CSS: Bersih tanpa mematikan struktur bawaan Streamlit
 st.markdown("""
     <style>
-    /* 1. Sembunyikan menu bawaan, footer, & toolbar kanan (GitHub/Fork/Share) */
+    /* 1. Sembunyikan footer & menu default yang tidak diperlukan */
     #MainMenu { display: none !important; }
     footer { display: none !important; }
+
+    /* 2. Sembunyikan toolbar kanan (Share/Edit/GitHub) tanpa merusak kontrol sidebar */
     div[data-testid="stToolbar"] { display: none !important; }
     .stAppDeployButton { display: none !important; }
 
-    /* 2. Buat header transparan agar tombol sidebar (>) di kiri atas tetap muncul */
-    header[data-testid="stHeader"] {
-        background-color: transparent !important;
-        visibility: visible !important;
-    }
-
-    /* 3. Paksa tombol pembuka sidebar (>) selalu terlihat */
-    [data-testid="stSidebarCollapsedControl"] {
-        display: flex !important;
-        visibility: visible !important;
-    }
-
-    /* 4. Watermark di tengah bawah */
+    /* 3. Watermark di tengah bawah */
     .watermark {
         position: fixed;
         bottom: 15px;
@@ -60,8 +50,19 @@ st.markdown("""
     <div class="watermark">Created by iqbalmantam</div>
 """, unsafe_allow_html=True)
 
+# Toggle Manual Sidebar (Solusi Khusus HP)
+if "sidebar_state" not in st.session_state:
+    st.session_state.sidebar_state = "expanded"
+
 st.title("🛡️ Background Check - OSINT")
 st.caption("Platform Background Check Kandidat (100% Real-Time & Live Connection)")
+
+# Tombol cadangan jika dibuka dari HP dan sidebar tertutup
+col_btn, _ = st.columns([1, 3])
+with col_btn:
+    if st.button("📌 Buka / Tutup Input Form"):
+        st.write(" Silakan ketuk ikon panah **`>`** atau **`>>`** di pojok kiri atas/bawah untuk membuka form input.")
+
 st.divider()
 
 # Sidebar Input
