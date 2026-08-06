@@ -192,17 +192,18 @@ if "osint_results" in st.session_state:
             else:
                 st.info("Email tidak terikat GitHub publik.")
 
-    # TAB 2: Social Matrix
+    # TAB 2: Social Matrix (Auto Cross-Check & Dorking Search)
     with tab2:
-        st.subheader("🌐 Matrix Media Sosial (Direct & Dorking Search)")
-        st.caption("Pilih 'Direct Profil' untuk membuka situs secara langsung, atau 'Verifikasi via Google Dork' untuk mengecek indeks publik.")
+        st.subheader("🌐 Matrix Media Sosial (Auto Cross-Check & Dorking)")
+        st.caption("Sistem memverifikasi status ketersediaan profil secara otomatis di latar belakang.")
         
         if res["social_res"]:
             df_s = pd.DataFrame(res["social_res"])
             st.dataframe(
-                df_s[["platform", "direct_url", "dork_url"]], 
+                df_s[["platform", "status_check", "direct_url", "dork_url"]], 
                 column_config={
                     "platform": "Platform Target",
+                    "status_check": "Verifikasi Otomatis",
                     "direct_url": st.column_config.LinkColumn("Buka Direct Profil"),
                     "dork_url": st.column_config.LinkColumn("Verifikasi via Google Dork")
                 },
