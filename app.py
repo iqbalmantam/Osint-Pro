@@ -171,20 +171,25 @@ if btn_submit:
                 else:
                     st.info("Email tidak terikat GitHub publik.")
 
-        # TAB 2: Social Matrix
+        # TAB 2: Social Matrix (100% Dorking Engine)
         with tab2:
-            st.subheader("🌐 Matrix Media Sosial Active Check")
+            st.subheader("🌐 Matrix Media Sosial Precision Search (100% Dorking)")
+            st.caption("Menyajikan tautan pencarian terisolasi untuk menemukan profil asli kandidat secara instan tanpa terbentur authwall/404.")
+            
             if social_res:
-                st.metric("Total Platform Medsos Aktif", f"{active_social_count} / {len(social_res)}")
                 df_s = pd.DataFrame(social_res)
-                df_s["Status Network"] = df_s["found"].apply(lambda x: "✅ TERAKREDITASI AKTIF (200 OK)" if x else "❌ Tidak Ditemukan")
                 st.dataframe(
-                    df_s[["platform", "Status Network", "url"]], 
-                    column_config={"url": st.column_config.LinkColumn("Direct Profile Link")},
-                    use_container_width=True
+                    df_s[["platform", "status_note", "url"]], 
+                    column_config={
+                        "platform": "Platform Target",
+                        "status_note": "Mode Investigasi",
+                        "url": st.column_config.LinkColumn("Buka Pencarian Presisi (Google Dork)")
+                    },
+                    use_container_width=True,
+                    hide_index=True
                 )
             else:
-                st.info("Masukkan username di sidebar untuk memindai akun media sosial.")
+                st.info("Masukkan Username atau Nama Kandidat di sidebar untuk memunculkan tautan pencarian.")
 
         # TAB 3: REVERSE IMAGE SEARCH ENGINE
         with tab3:
