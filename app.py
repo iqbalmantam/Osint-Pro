@@ -16,15 +16,27 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS: Sembunyikan menu bawaan Streamlit tapi tampilkan tombol Sidebar (>) di HP
+# Custom CSS: Sembunyikan seluruh Toolbar Streamlit (Fork, GitHub Logo, Action Elements)
 st.markdown("""
     <style>
-    /* Sembunyikan menu hamburger bawaan & footer Streamlit */
+    /* Sembunyikan menu hamburger bawaan, footer, dan toolbar GitHub/Fork */
     #MainMenu { visibility: hidden; }
     footer { visibility: hidden; }
-    header[data-testid="stHeader"] { background: transparent !important; }
+    header[data-testid="stHeader"] { 
+        background: transparent !important;
+        visibility: hidden !important;
+    }
+    
+    /* Target khusus untuk menyembunyikan toolbar kanan atas Streamlit Cloud (Fork & GitHub Icon) */
+    div[data-testid="stToolbar"] {
+        visibility: hidden !important;
+        display: none !important;
+    }
+    .stAppDeployButton {
+        display: none !important;
+    }
 
-    /* Pastikan tombol pembuka sidebar (ikon >) di HP tetap kelihatan dan bisa diklik */
+    /* Pastikan tombol pembuka sidebar (ikon >>) di HP tetap kelihatan dan bisa diklik */
     div[data-testid="stSidebarCollapsedControl"] {
         visibility: visible !important;
         display: block !important;
