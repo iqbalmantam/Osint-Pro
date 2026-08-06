@@ -1,70 +1,94 @@
 from urllib.parse import quote_plus
 
-def generate_indonesia_dorks(email: str = "", phone_info: dict = None, username: str = "", full_name: str = ""):
+
+def generate_social_dork_url(platform_domain, target_input):
+    """Membangun URL Google Dork yang valid dengan membungkus frasa/nama
+
+    menggunakan tanda petik ganda untuk mencegah pencarian kosong.
+    """
+    if not target_input:
+        return "#"
+
+    target_clean = target_input.strip()
+    keywords = []
+
+    # 1. Masukkan input utama dibungkus tanda petik ganda
+    keywords.append(f'"{target_clean}"')
+
+    # 2. Jika input mengandung spasi, buat variasi tanpa spasi & dengan tanda hubung (-)
+    if " " in target_clean:
+        no_space = target_clean.replace(" ", "")
+        hyphen_space = target_clean.replace(" ", "-")
+        keywords.append(f'"{no_space}"')
+        keywords.append(f'"{hyphen_space}"')
+
+    # Gabungkan keyword dengan operator OR di dalam kurung
+    query_str = f"site:{platform_domain} (" + " OR ".join(keywords) + ")"
+
+    return f"https://www.google.com/search?q={quote_plus(query_str)}"
+
+
+def generate_indonesia_dorks(email_in, phone_data, username_in, name_in):
+    """Membangun daftar Google Dorks legal & pengadilan Indonesia
+
+    dengan pengutipan frasa yang presisi.
+    """
+    target_name = name_in.strip() if name_in else ""
+    target_user = username_in.strip() if username_in else ""
+    target_email = email_in.strip() if email_in else ""
+    phone_clean = phone_data.get("local_format", "").strip()
+
     dorks = []
-    target_name = full_name.strip() if full_name else username.strip()
 
+    # 1. Legal & Court Search (Mahkamah Agung / SIPP / Putusan)
     if target_name:
-        # 1. Verification PDDikti & Academic Records
-        q_edu = f'site:pddikti.kemdikbud.go.id "{target_name}" OR "{target_name}" "ijazah" OR "wisuda" OR "skck"'
-        dorks.append({
-            "title": "🎓 Verifikasi Akademik & PDDikti (Pangkalan Data Pendidikan Tinggi)",
-            "query": q_edu,
-            "link": f"https://www.google.com/search?q={quote_plus(q_edu)}"
-        })
-        
-        # 2. Mahkamah Agung & Court Registry
-        q_legal = f'"{target_name}" site:mahkamahagung.go.id OR "putusan mahkamah agung" OR "terpidana" OR "tergugat"'
-        dorks.append({
-            "title": "⚖️ Audit Hukum (Direktori Putusan Mahkamah Agung & SIPP PN)",
-            "query": q_legal,
-            "link": f"https://www.google.com/search?q={quote_plus(q_legal)}"
-        })
+        q_legal = f'site:mahkamahagung.go.id OR site:pn-*.go.id OR site:pt-*.go.id "{target_name}"'
+        dorks.append(
+            {
+                "title": "⚖️ Pindai Rekam Jejak Hukum & Perkara Pengadilan (MA / SIPP)",
+                "query": q_legal,
+                "link": f"https://www.google.com/search?q={quote_plus(q_legal)}",
+            }
+        )
 
-        # 3. OJK & Financial Compliance Check
-        q_fin = f'"{target_name}" "satgas pasti" OR "ojk" OR "penipuan" OR "investasi bodong" OR "dftr_hitam"'
-        dorks.append({
-            "title": "🏦 Rekam Jejak Keuangan & Integritas Finansial (OJK / Satgas Pasti)",
-            "query": q_fin,
-            "link": f"https://www.google.com/search?q={quote_plus(q_fin)}"
-        })
+    # 2. PDF & Document Leak Search
+    doc_query_parts = []
+    if target_name:
+        doc_query_parts.append(f'"{target_name}"')
+    if target_email:
+        doc_query_parts.append(f'"{target_email}"')
+    if phone_clean:
+        doc_query_parts.append(f'"{phone_clean}"')
 
-        # 4. Komunitas & Forum Lokal Indonesia (FITUR BARU)
-        q_forum = f'site:kaskus.co.id OR site:id.quora.com OR site:blogspot.com OR site:wordpress.com "{target_name}"'
-        dorks.append({
-            "title": "💬 Jejak Diskusi Forum & Komunitas Lokal (Kaskus, Quora, Blogspot, WordPress)",
-            "query": q_forum,
-            "link": f"https://www.google.com/search?q={quote_plus(q_forum)}"
-        })
+    if doc_query_parts:
+        q_doc = f"filetype:pdf OR filetype:xlsx OR filetype:docx ({' OR '.join(doc_query_parts)})"
+        dorks.append(
+            {
+                "title": "📄 Pencarian Dokumen Publik & File Sensitif (PDF/XLSX)",
+                "query": q_doc,
+                "link": f"https://www.google.com/search?q={quote_plus(q_doc)}",
+            }
+        )
 
-        # 5. E-Commerce & Marketplace Activity (FITUR BARU)
-        q_market = f'site:tokopedia.com OR site:shopee.co.id OR site:olx.co.id "{target_name}"'
-        dorks.append({
-            "title": "🛒 Jejak E-Commerce & Marketplace (Tokopedia, Shopee, OLX)",
-            "query": q_market,
-            "link": f"https://www.google.com/search?q={quote_plus(q_market)}"
-        })
-
-    if email:
-        q_email = f'"{email.strip()}"'
-        dorks.append({
-            "title": "📜 Rekam Jejak Email Publik (PDF / Sertifikat / Dokumen Publik)",
-            "query": q_email,
-            "link": f"https://www.google.com/search?q={quote_plus(q_email)}"
-        })
-
-    if phone_info:
-        q_phone = f'"{phone_info["local_format"]}" OR "{phone_info["intl_format"]}"'
-        dorks.append({
-            "title": "📱 Jejak Kontak Seluler (Forum / Marketplace Logs / Olx)",
-            "query": q_phone,
-            "link": f"https://www.google.com/search?q={quote_plus(q_phone)}"
-        })
+    # 3. Mention Berita & Forum Publik
+    if target_name or target_user:
+        target_keyword = f'"{target_name}"' if target_name else f'"{target_user}"'
+        q_news = f'site:detik.com OR site:kompas.com OR site:kaskus.co.id OR site:kumparan.com {target_keyword}'
+        dorks.append(
+            {
+                "title": "📰 Pindai Penyebutan Nama di Media Berita & Forum Publik",
+                "query": q_news,
+                "link": f"https://www.google.com/search?q={quote_plus(q_news)}",
+            }
+        )
 
     return dorks
 
-def generate_telecom_dorks(phone_intl: str):
+
+def generate_telecom_dorks(phone_intl):
+    """Membangun tautan eksternal lookup telecom."""
+    clean_phone = phone_intl.replace("+", "").replace(" ", "")
     return {
-        "getcontact": "https://web.getcontact.com/",
-        "truecaller": f"https://www.truecaller.com/search/id/{phone_intl}"
+        "truecaller": f"https://www.truecaller.com/search/id/{clean_phone}",
+        "getcontact": "https://www.getcontact.com/",
     }
