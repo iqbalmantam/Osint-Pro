@@ -2,7 +2,6 @@ import httpx
 import asyncio
 from urllib.parse import quote
 
-# Mapping Platform dan Format Direct URL serta Domain Dork
 PLATFORMS_CONFIG = {
     "LinkedIn": {
         "domain": "linkedin.com/in/",
@@ -50,23 +49,53 @@ PLATFORMS_CONFIG = {
     }
 }
 
-async def _build_entry(name, cfg, raw_input):
+async def _verify_direct_url(client, name, url):
+    """Mengecek ketersediaan profil secara otomatis di latar belakang."""
+    if url == "#" or name == "LinkedIn":
+        return "🟡 Perlu Diulas Manual"
+
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+        "Accept-Language": "en-US,en;q=0.9",
+    }
+
+    try:
+        res = await client.get(url, headers=headers, timeout=5.0, follow_redirects=True)
+        res_text = res.text.lower()
+
+        # Deteksi Halaman Kosong/Error khas
+        is_404 = (
+            res.status_code == 404 or 
+            "page doesn’t exist" in res_text or 
+            "page doesn't exist" in res_text or 
+            "couldn't find this account" in res_text or
+            "couldn’t find this account" in res_text or
+            "sorry, this page isn't available" in res_text
+        )
+
+        if is_404:
+            return "🔴 Pasti Tidak Ada"
+        elif res.status_code == 200 and "login" not in str(res.url).lower():
+            return "🟢 Terverifikasi Ada"
+        else:
+            return "🟡 Perlu Diulas Manual"
+    except Exception:
+        return "🟡 Perlu Diulas Manual"
+
+async def _build_entry(client, name, cfg, raw_input):
     clean = raw_input.strip().replace("@", "")
     if not clean:
         return {
             "platform": name,
-            "found": False,
+            "status_check": "❌ Input Kosong",
             "direct_url": "#",
-            "dork_url": "#",
-            "status_note": "❌ Input Kosong"
+            "dork_url": "#"
         }
 
     clean_no_space = "".join(clean.lower().split())
-    
-    # Direct Link ke Platform
     direct_link = cfg["direct_tmpl"].format(clean_no_space)
     
-    # Dorking Google Search Link
+    # Dorking Google Search Query
     if " " in clean:
         no_space = "".join(clean.lower().split())
         dash_space = "-".join(clean.lower().split())
@@ -76,21 +105,23 @@ async def _build_entry(name, cfg, raw_input):
         
     dork_link = f"https://www.google.com/search?q={quote(dork_query)}"
 
+    # Verifikasi Silang Otomatis (HTTP Check)
+    status_label = await _verify_direct_url(client, name, direct_link)
+
     return {
         "platform": name,
-        "found": True,
+        "status_check": status_label,
         "direct_url": direct_link,
-        "dork_url": dork_link,
-        "status_note": f"🔍 Tautan Investigasi Ready"
+        "dork_url": dork_link
     }
 
 async def check_indonesia_socials(username: str):
     if not username or not username.strip():
         return []
         
-    tasks = [
-        _build_entry(name, cfg, username)
-        for name, cfg in PLATFORMS_CONFIG.items()
-    ]
-    
-    return await asyncio.gather(*tasks)
+    async with httpx.AsyncClient(follow_redirects=True) as client:
+        tasks = [
+            _build_entry(client, name, cfg, username)
+            for name, cfg in PLATFORMS_CONFIG.items()
+        ]
+        return await asyncio.gather(*tasks)
