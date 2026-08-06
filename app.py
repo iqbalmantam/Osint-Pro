@@ -16,54 +16,42 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS: Paksa Tombol Sidebar Melayang & Sembunyikan Header/Fork/GitHub
+# Custom CSS: Menyembunyikan Fork/GitHub Logo TANPA merusak tombol Toggle Sidebar di HP
 st.markdown("""
     <style>
-    /* 1. Sembunyikan elemen tidak penting */
-    #MainMenu, footer { 
-        visibility: hidden !important; 
-        display: none !important; 
+    /* 1. Sembunyikan Footer & Menu Hamburger Bawaan */
+    #MainMenu { visibility: hidden !important; }
+    footer { visibility: hidden !important; }
+
+    /* 2. Sembunyikan khusus tombol Fork & GitHub Logo di kanan atas */
+    div[data-testid="stToolbar"] {
+        visibility: hidden !important;
+        display: none !important;
     }
-    div[data-testid="stToolbar"] { 
-        visibility: hidden !important; 
-        display: none !important; 
-    }
-    .stAppDeployButton { 
-        display: none !important; 
+    .stAppDeployButton {
+        display: none !important;
     }
 
-    /* 2. Buat header tidak menghalangi klik di HP */
+    /* 3. Pastikan Header tidak memblokir tombol toggle bawaan Streamlit */
     header[data-testid="stHeader"] {
         background: transparent !important;
-        pointer-events: none !important;
+        z-index: 1 !important;
     }
 
-    /* 3. PAKSA TOMBOL SIDEBAR (>>) TERLIHAT & DAPAT DIKLIK DI HP/DESKTOP */
-    div[data-testid="stSidebarCollapsedControl"],
+    /* 4. Tampilkan & Tebalkan Tombol Pembuka Sidebar (>>) di HP & PC */
+    [data-testid="stSidebarCollapsedControl"],
     button[data-testid="stSidebarCollapsedControl"],
-    [data-testid="collapsedControl"] {
+    div[data-testid="collapsedControl"] {
         visibility: visible !important;
         display: flex !important;
-        pointer-events: auto !important;
-        position: fixed !important;
-        top: 12px !important;
-        left: 12px !important;
-        z-index: 9999999 !important;
+        z-index: 999999 !important;
         background-color: #161b22 !important;
         border: 1px solid #30363d !important;
         border-radius: 8px !important;
-        padding: 4px !important;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.5) !important;
-    }
-
-    /* Warna ikon panah (>>) */
-    button[data-testid="stSidebarCollapsedControl"] svg,
-    [data-testid="collapsedControl"] svg {
-        fill: #f0f6fc !important;
         color: #f0f6fc !important;
     }
 
-    /* 4. Watermark di tengah bawah */
+    /* 5. Watermark di tengah bawah */
     .watermark {
         position: fixed;
         bottom: 15px;
