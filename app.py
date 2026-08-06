@@ -19,7 +19,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS: Hanya sembunyikan ikon toolbar kanan tanpa mematikan tombol Sidebar (>>)
+# Custom CSS
 st.markdown("""
     <style>
     #MainMenu { visibility: hidden; }
@@ -97,7 +97,6 @@ with st.sidebar:
     mask_sensitive = st.checkbox("🔒 Masking Data Sensitif", value=False, help="Sensor nomor telepon dan email pada tampilan dashboard")
     st.markdown("<br><div style='text-align: center; color: #8b949e; font-size: 12px;'>OSINT Engine Enterprise v4.0<br><b>Created by iqbalmantam</b></div>", unsafe_allow_html=True)
 
-# Helper Function untuk Masking Data
 def mask_text(text, type_mode="email"):
     if not text or not mask_sensitive:
         return text
@@ -108,38 +107,32 @@ def mask_text(text, type_mode="email"):
         return text[:4] + "****" + text[-3:]
     return text
 
-# Eksekusi Investigasi dengan Progress Bar Real-Time
 if btn_submit:
     if not email_in or not phone_in:
         st.error("⚠️ Email dan Nomor HP Wajib Diisi sebagai Primary Key!")
     else:
         progress_bar = st.progress(0, text="Menginisialisasi Engine Investigasi OSINT...")
         
-        # Step 1: Telco Analysis
         progress_bar.progress(15, text="📱 Menguraikan Provider Seluler & Format Kontak...")
         phone_data = analyze_indonesia_phone(phone_in)
         telecom_links = generate_telecom_dorks(phone_data["intl_format"])
         time.sleep(0.2)
         
-        # Step 2: Identity Lookup
         progress_bar.progress(35, text="👤 Melacak Identitas Utama (Gravatar & GitHub)...")
         identity_res = asyncio.run(check_email_identity(email_in))
         time.sleep(0.2)
         
-        # Step 3: Social Matrix Scanning
         progress_bar.progress(60, text="🌐 Memverifikasi Ketersediaan Media Sosial...")
         target_social_input = username_in if username_in else name_in
         social_res = asyncio.run(check_indonesia_socials(target_social_input)) if target_social_input else []
         time.sleep(0.2)
         
-        # Step 4: Leak & Academic Intelligence
         progress_bar.progress(80, text="⚠️ Memeriksa Kebocoran Data & Rekam Akademik (PDDikti)...")
         breach_res = asyncio.run(check_data_breach(email_in))
         dorks = generate_indonesia_dorks(email_in, phone_data, username_in, name_in, city_in, company_in)
         pddikti_dorks = generate_pddikti_dorks(name_in, company_in or city_in)
         time.sleep(0.2)
         
-        # Step 5: Risk Scoring Calculation
         progress_bar.progress(95, text="📊 Menghitung Dynamic Risk Score...")
         active_social_count = len([s for s in social_res if s.get("status_check") == "🟢 Terverifikasi Ada"]) if social_res else 0
         has_github = identity_res.get("github", {}).get("found", False)
@@ -163,7 +156,6 @@ if btn_submit:
         time.sleep(0.4)
         progress_bar.empty()
 
-        # Simpan ke Session State
         st.session_state["osint_results"] = {
             "email_in": email_in,
             "phone_data": phone_data,
@@ -182,11 +174,9 @@ if btn_submit:
             "is_breached": is_breached
         }
 
-# Menampilkan Hasil Investigasi
 if "osint_results" in st.session_state:
     res = st.session_state["osint_results"]
     
-    # Risk Summary Header
     st.subheader("📊 Summary & Digital Risk Assessment")
     c_risk1, c_risk2 = st.columns([1, 2])
     
@@ -208,7 +198,6 @@ if "osint_results" in st.session_state:
 
     st.divider()
 
-    # Navigasi Tabs
     tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
         "📱 Telecom & Identity", 
         "🌐 Social Matrix", 
@@ -218,7 +207,6 @@ if "osint_results" in st.session_state:
         "⚖️ Legal & Export"
     ])
 
-    # TAB 1: Telecom & Identity
     with tab1:
         st.subheader("📱 Analytics Seluler & Network Lookup")
         col_t1, col_t2, col_t3 = st.columns(3)
@@ -228,8 +216,8 @@ if "osint_results" in st.session_state:
         
         st.markdown(f"* 💬 [Buka Live Chat WhatsApp Kandidat]({res['phone_data']['wa_link']})")
         st.markdown(f"* ✈️ [Cek Profil Telegram via Phone Number]({res['phone_data']['telegram_link']})")
-        st.markdown(f"* 📞 [Pindai Tags/Nama Kontak via Truecaller]({res['telecom_links']['truecaller']})")
-        st.markdown(f"* 📇 [Akses GetContact Web Portal]({res['telecom_links']['getcontact']})")
+        st.markdown(f"* 📞 [Pindai Nama Kontak via Truecaller (Perlu Login)]({res['telecom_links']['truecaller']})")
+        st.markdown(f"* 📇 [Cek Indeks Tags GetContact via Google Dork]({res['telecom_links']['getcontact']})")
         
         st.divider()
         st.subheader("👤 Identitas Terikat Email (" + mask_text(res['email_in'], 'email') + ")")
@@ -259,7 +247,6 @@ if "osint_results" in st.session_state:
             else:
                 st.info("Email tidak terikat GitHub publik.")
 
-    # TAB 2: Social Matrix
     with tab2:
         st.subheader("🌐 Matrix Media Sosial & Dorking")
         if res.get("social_res"):
@@ -278,7 +265,6 @@ if "osint_results" in st.session_state:
         else:
             st.info("Masukkan Username atau Nama untuk mengaktifkan matrix media sosial.")
 
-    # TAB 3: Akademik & PDDikti (FITUR BARU)
     with tab3:
         st.subheader("🎓 Verifikasi Rekam Akademik & PDDikti")
         if res.get("pddikti_dorks"):
@@ -290,7 +276,6 @@ if "osint_results" in st.session_state:
         else:
             st.info("Masukkan Nama Lengkap Kandidat untuk mengaktifkan pencarian PDDikti.")
 
-    # TAB 4: Visual Search Engine
     with tab4:
         st.subheader("🖼️ Reverse Image Search Engine")
         avatar_url = res["identity_res"].get("gravatar", {}).get("avatar") or res["identity_res"].get("github", {}).get("avatar")
@@ -310,7 +295,6 @@ if "osint_results" in st.session_state:
                 lens_url = f"https://lens.google.com/uploadbyurl?url={quote_plus(manual_img)}"
                 st.markdown(f"* [🔍 Lacak Foto Manual di Google Lens]({lens_url})")
 
-    # TAB 5: Leak Intelligence
     with tab5:
         st.subheader("⚠️ Data Leakage Check")
         if res["breach_res"].get("breached"):
@@ -319,7 +303,6 @@ if "osint_results" in st.session_state:
         else:
             st.success("✅ Email ini bersih dan tidak terdeteksi dalam insiden kebocoran data publik besar.")
 
-    # TAB 6: Legal & Export Multi-Format
     with tab6:
         st.subheader("⚖️ Legal Dorking & Report Multi-Format Export")
         for d in res["dorks"]:
@@ -333,7 +316,6 @@ if "osint_results" in st.session_state:
         
         c_exp1, c_exp2, c_exp3 = st.columns(3)
         
-        # 1. Printable HTML / Save PDF
         html_report = f"""
         <!DOCTYPE html>
         <html>
@@ -379,7 +361,6 @@ if "osint_results" in st.session_state:
             use_container_width=True
         )
         
-        # 2. JSON Export
         json_data = json.dumps(res, default=str, indent=2)
         c_exp2.download_button(
             label="📦 Export Full Raw (.JSON)",
@@ -389,7 +370,6 @@ if "osint_results" in st.session_state:
             use_container_width=True
         )
         
-        # 3. CSV Summary Export
         summary_df = pd.DataFrame([{
             "Nama": res["name_in"],
             "Email": res["email_in"],
