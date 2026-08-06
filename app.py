@@ -16,20 +16,31 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS: Paksa Tombol Sidebar (>> / Menu) Tampil Kembali di HP/Desktop
+# Custom CSS: Sembunyikan elemen bawaan Streamlit secara absolut
 st.markdown("""
     <style>
-    /* 1. Sembunyikan footer & menu default yang tidak diperlukan */
+    /* 1. Sembunyikan menu hamburger & footer bawaan */
     #MainMenu { display: none !important; }
     footer { display: none !important; }
 
-    /* 2. PAKSA TOMBOL KONTROL SIDEBAR (>>) AGAR MUNCUL DAN BISA DIKLIK */
+    /* 2. Sembunyikan total Toolbar Cloud & Tombol GitHub/Share/Deploy di kanan atas */
+    header[data-testid="stHeader"] {
+        background-color: transparent !important;
+    }
+    
+    div[data-testid="stToolbar"],
+    .stAppDeployButton,
+    button[kind="header"] {
+        display: none !important;
+        visibility: hidden !important;
+    }
+
+    /* 3. Pastikan tombol toggle sidebar (>>) di kiri tetap tampil dan bisa diklik */
     [data-testid="stSidebarCollapsedControl"],
     button[data-testid="stSidebarCollapsedControl"],
     [data-testid="collapsedControl"] {
         display: flex !important;
         visibility: visible !important;
-        opacity: 1 !important;
         z-index: 999999 !important;
         background-color: #161b22 !important;
         border: 1px solid #30363d !important;
@@ -37,13 +48,7 @@ st.markdown("""
         color: #f0f6fc !important;
     }
 
-    /* Pastikan header memuat kontrol dengan benar */
-    header[data-testid="stHeader"] {
-        background-color: transparent !important;
-        visibility: visible !important;
-    }
-
-    /* 3. Watermark di tengah bawah */
+    /* 4. Watermark di tengah bawah */
     .watermark {
         position: fixed;
         bottom: 15px;
