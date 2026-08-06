@@ -9,13 +9,13 @@ from modules.breach_checker import check_data_breach
 from modules.dork_indonesia import generate_indonesia_dorks
 
 st.set_page_config(
-    page_title="Background Check OSINT",
+    page_title="Indonesia Candidate OSINT Master",
     page_icon="🛡️",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS: Menyembunyikan logo GitHub & menambahkan watermark Iqbal Mantam
+# Custom CSS: Menyembunyikan logo GitHub & posisi watermark di tengah bawah
 st.markdown("""
     <style>
     /* Sembunyikan Header bawaan Streamlit (Logo GitHub, Share, Star) */
@@ -24,29 +24,31 @@ st.markdown("""
         height: 0%;
     }
     
-    /* Custom Watermark Melayang di Kanan Bawah */
+    /* Custom Watermark Melayang di Tengah Bawah */
     .watermark {
         position: fixed;
         bottom: 15px;
-        right: 20px;
-        opacity: 0.7;
+        left: 50%;
+        transform: translateX(-50%);
+        opacity: 0.85;
         font-size: 13px;
         font-weight: 600;
         color: #8b949e;
-        background-color: rgba(22, 27, 34, 0.85);
-        padding: 6px 14px;
+        background-color: rgba(22, 27, 34, 0.9);
+        padding: 6px 18px;
         border-radius: 20px;
         border: 1px solid #30363d;
         z-index: 99999;
         pointer-events: none;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.3);
     }
     </style>
     
     <div class="watermark">Created by iqbalmantam</div>
 """, unsafe_allow_html=True)
 
-st.title("🛡️ Background Check - OSINT")
-st.caption("Platform Background Check (100% Real-Time & Live Connection)")
+st.title("🛡️ Indonesia Candidate OSINT Intelligence Engine")
+st.caption("Platform Background Check Kandidat (100% Real-Time & Live Connection)")
 st.divider()
 
 # Sidebar Input
