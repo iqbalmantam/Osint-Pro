@@ -16,15 +16,28 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS Versi Stabil Awal
+# Custom CSS: Hanya sembunyikan menu/footer/toolbar tanpa mematikan tombol sidebar (>)
 st.markdown("""
     <style>
-    /* Sembunyikan menu bawaan & footer Streamlit */
-    #MainMenu { visibility: hidden; }
-    footer { visibility: hidden; }
-    header[data-testid="stHeader"] { visibility: hidden; }
+    /* 1. Sembunyikan menu bawaan, footer, & toolbar kanan (GitHub/Fork/Share) */
+    #MainMenu { display: none !important; }
+    footer { display: none !important; }
+    div[data-testid="stToolbar"] { display: none !important; }
+    .stAppDeployButton { display: none !important; }
 
-    /* Watermark di tengah bawah */
+    /* 2. Buat header transparan agar tombol sidebar (>) di kiri atas tetap muncul */
+    header[data-testid="stHeader"] {
+        background-color: transparent !important;
+        visibility: visible !important;
+    }
+
+    /* 3. Paksa tombol pembuka sidebar (>) selalu terlihat */
+    [data-testid="stSidebarCollapsedControl"] {
+        display: flex !important;
+        visibility: visible !important;
+    }
+
+    /* 4. Watermark di tengah bawah */
     .watermark {
         position: fixed;
         bottom: 15px;
