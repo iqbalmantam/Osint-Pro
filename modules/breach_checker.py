@@ -1,17 +1,23 @@
-import httpx
+import aiohttp
 
-async def check_data_breach(email: str):
-    clean_email = email.strip().lower()
-    url = f"https://haveibeenpwned.com/api/v3/breachedaccount/{clean_email}?truncateResponse=false"
-    headers = {"User-Agent": "Candidate-OSINT-App"}
+async def check_data_breach(email):
+    if not email:
+        return {"breached": False, "data": []}
     
-    async with httpx.AsyncClient(timeout=6.0) as client:
-        try:
-            res = await client.get(url, headers=headers)
-            if res.status_code == 200:
-                return {"email": clean_email, "breached": True, "data": res.json()}
-            elif res.status_code == 404:
-                return {"email": clean_email, "breached": False, "data": []}
-        except Exception:
-            pass
-    return {"email": clean_email, "breached": False, "data": [], "error": "Pengecekan dibatasi/timeout"}
+    # Memeriksa insiden kebocoran publik via API HIBP Alternative
+    url = f"https://api.xposedornot.com/v1/check-email/{email.strip()}"
+    
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, timeout=5) as resp:
+                if resp.status == 200:
+                    data = await resp.json()
+                    if "breaches" in data and len(data["breaches"]) > 0:
+                        return {
+                            "breached": True,
+                            "data": data["breaches"]
+                        }
+    except Exception:
+        pass
+        
+    return {"breached": False, "data": []}
