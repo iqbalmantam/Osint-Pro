@@ -16,22 +16,10 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS: Sembunyikan elemen bawaan TANPA menyembunyikan stHeader agar tombol sidebar (>>) tetap muncul
+# Custom CSS: Hanya untuk Watermark tanpa menyembunyikan elemen struktur Streamlit
 st.markdown("""
     <style>
-    /* 1. Sembunyikan menu hamburger, footer, & toolbar kanan (GitHub/Share) */
-    #MainMenu { display: none !important; }
-    footer { display: none !important; }
-    div[data-testid="stToolbar"] { display: none !important; }
-    .stAppDeployButton { display: none !important; }
-    button[title="View source on GitHub"] { display: none !important; }
-
-    /* 2. Header dibuat transparan agar tidak makan tempat, tapi tombol sidebar di kiri atas TETAP ADA */
-    header[data-testid="stHeader"] {
-        background-color: transparent !important;
-    }
-
-    /* 3. Watermark di tengah bawah */
+    /* Watermark di tengah bawah */
     .watermark {
         position: fixed;
         bottom: 15px;
