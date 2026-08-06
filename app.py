@@ -16,20 +16,31 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS: Sembunyikan Logo GitHub/Toolbar kanan tanpa mengganggu tombol sidebar (>>) di kiri
+# Custom CSS: Paksa Tombol Sidebar (>> / Menu) Tampil Kembali di HP/Desktop
 st.markdown("""
     <style>
     /* 1. Sembunyikan footer & menu default yang tidak diperlukan */
     #MainMenu { display: none !important; }
     footer { display: none !important; }
 
-    /* 2. Sembunyikan Toolbar kanan (Logo GitHub, Share, Edit) */
-    div[data-testid="stToolbar"] {
-        display: none !important;
-        visibility: hidden !important;
+    /* 2. PAKSA TOMBOL KONTROL SIDEBAR (>>) AGAR MUNCUL DAN BISA DIKLIK */
+    [data-testid="stSidebarCollapsedControl"],
+    button[data-testid="stSidebarCollapsedControl"],
+    [data-testid="collapsedControl"] {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        z-index: 999999 !important;
+        background-color: #161b22 !important;
+        border: 1px solid #30363d !important;
+        border-radius: 8px !important;
+        color: #f0f6fc !important;
     }
-    .stAppDeployButton {
-        display: none !important;
+
+    /* Pastikan header memuat kontrol dengan benar */
+    header[data-testid="stHeader"] {
+        background-color: transparent !important;
+        visibility: visible !important;
     }
 
     /* 3. Watermark di tengah bawah */
