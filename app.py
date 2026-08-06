@@ -11,7 +11,7 @@ from modules.breach_checker import check_data_breach
 from modules.dork_indonesia import generate_indonesia_dorks, generate_telecom_dorks
 
 st.set_page_config(
-    page_title="Background Check",
+    page_title="Background Check - OSINT Engine",
     page_icon="🛡️",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -61,7 +61,7 @@ with st.sidebar:
     st.markdown("---")
     btn_submit = st.button("🚀 Jalankan Investigasi OSINT", type="primary", use_container_width=True)
 
-    st.markdown("<br><br><div style='text-align: center; color: #8b949e; font-size: 12px;'>Engine OSINT v2.5<br><b>Created by iqbalmantam</b></div>", unsafe_allow_html=True)
+    st.markdown("<br><br><div style='text-align: center; color: #8b949e; font-size: 12px;'>Engine OSINT v3.0<br><b>Created by iqbalmantam</b></div>", unsafe_allow_html=True)
 
 if btn_submit:
     if not email_in or not phone_in:
@@ -72,15 +72,19 @@ if btn_submit:
         
         # Async Executions
         identity_res = asyncio.run(check_email_identity(email_in))
-        social_res = asyncio.run(check_indonesia_socials(username_in)) if username_in else []
+        
+        # Gunakan username jika diisi, atau fallback ke name_in untuk Dorking Medsos
+        target_social_input = username_in if username_in else name_in
+        social_res = asyncio.run(check_indonesia_socials(target_social_input)) if target_social_input else []
+        
         breach_res = asyncio.run(check_data_breach(email_in))
         dorks = generate_indonesia_dorks(email_in, phone_data, username_in, name_in)
         telecom_links = generate_telecom_dorks(phone_data["intl_format"])
 
         # ==========================================
-        # FITUR 4: RISK SCORING ENGINE
+        # RISK SCORING ENGINE
         # ==========================================
-        active_social_count = len([s for s in social_res if s["found"]]) if social_res else 0
+        active_social_count = len([s for s in social_res if s.get("found")]) if social_res else 0
         has_github = identity_res.get("github", {}).get("found", False)
         has_gravatar = identity_res.get("gravatar", {}).get("found", False)
         is_breached = breach_res.get("breached", False)
@@ -94,9 +98,9 @@ if btn_submit:
         if not has_github and not has_gravatar:
             risk_score -= 20
             risk_notes.append("Tidak ditemukan jejak identitas developer/WordPress publik.")
-        if active_social_count == 0 and username_in:
+        if active_social_count == 0 and target_social_input:
             risk_score -= 20
-            risk_notes.append("Username yang dimasukkan tidak terdeteksi aktif di platform medsos utama.")
+            risk_notes.append("Username/Nama yang dimasukkan tidak menghasilkan jejak dorking terdeteksi.")
 
         # Risk Banner
         st.subheader("📊 Summary & Digital Footprint Risk Score")
@@ -237,23 +241,73 @@ if btn_submit:
                 
             st.divider()
             
-            # FITUR EXPORT REPORT (JSON)
+            # EXPORT REPORT
             st.subheader("📥 Export Audit Report")
+            col_down1, col_down2 = st.columns(2)
+            
+            # JSON Report
             report_data = {
                 "candidate_name": name_in or "N/A",
                 "email": email_in,
                 "phone": phone_data["local_format"],
                 "provider": phone_data["provider"],
                 "risk_score": risk_score,
+                "risk_notes": risk_notes,
                 "active_social_platforms": [s["platform"] for s in social_res if s.get("found")],
                 "breached": is_breached,
-                "audit_timestamp": pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S")
+                "audit_timestamp": pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S WIB")
             }
-            
             report_json = json.dumps(report_data, indent=4)
-            st.download_button(
-                label="📥 Download Audit Report (.JSON)",
-                data=report_json,
-                file_name=f"OSINT_Report_{email_in.split('@')[0]}.json",
-                mime="application/json"
-            )
+            
+            with col_down1:
+                st.download_button(
+                    label="📥 Download Data Raw (.JSON)",
+                    data=report_json,
+                    file_name=f"OSINT_Report_{email_in.split('@')[0]}.json",
+                    mime="application/json",
+                    use_container_width=True
+                )
+
+            # HTML Printable Report
+            html_report = f"""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>OSINT Audit Report - {name_in or email_in}</title>
+                <style>
+                    body {{ font-family: Arial, sans-serif; padding: 24px; color: #1e293b; background-color: #ffffff; }}
+                    h1 {{ color: #0f172a; border-bottom: 2px solid #3b82f6; padding-bottom: 8px; margin-bottom: 20px; }}
+                    .section {{ margin-bottom: 20px; padding: 16px; border: 1px solid #e2e8f0; border-radius: 8px; background-color: #f8fafc; }}
+                    .score {{ font-weight: bold; font-size: 20px; color: {'#16a34a' if risk_score>=80 else '#dc2626'}; }}
+                    .footer {{ margin-top: 40px; font-size: 11px; text-align: center; color: #64748b; border-top: 1px solid #e2e8f0; padding-top: 12px; }}
+                </style>
+            </head>
+            <body>
+                <h1>🛡️ OSINT Executive Candidate Report</h1>
+                <div class="section">
+                    <p><b>Nama Kandidat:</b> {name_in or 'N/A'}</p>
+                    <p><b>Email Utama:</b> {email_in}</p>
+                    <p><b>Nomor Kontak:</b> {phone_data['local_format']} ({phone_data['provider']})</p>
+                    <p><b>Timestamp Audit:</b> {pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S")} WIB</p>
+                    <p><b>Risk Score:</b> <span class="score">{risk_score} / 100</span></p>
+                </div>
+                <div class="section">
+                    <h3>Temuan & Catatan Audit:</h3>
+                    <ul>
+                        {''.join([f'<li>{n}</li>' for n in risk_notes]) if risk_notes else '<li>Tidak ada temuan berisiko. Rekam jejak digital terindikasi baik.</li>'}
+                    </ul>
+                </div>
+                <div class="footer">
+                    Generated by Candidate OSINT Intelligence Engine • Created by iqbalmantam
+                </div>
+            </body>
+            </html>
+            """
+            with col_down2:
+                st.download_button(
+                    label="📥 Download Printable Report (.HTML)",
+                    data=html_report,
+                    file_name=f"OSINT_Report_{email_in.split('@')[0]}.html",
+                    mime="text/html",
+                    use_container_width=True
+                )
