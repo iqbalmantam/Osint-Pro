@@ -1,5 +1,6 @@
 import httpx
 import asyncio
+from urllib.parse import quote
 
 PLATFORMS_INDO = {
     "LinkedIn": "https://www.linkedin.com/in/{}/",
@@ -15,57 +16,50 @@ PLATFORMS_INDO = {
     "Telegram": "https://t.me/{}"
 }
 
-async def _check_url(client, name, template, username):
-    clean_user = username.strip().replace("@", "")
-    if not clean_user:
+def clean_slug(raw_username: str, platform: str) -> str:
+    """Membersihkan input username dari spasi dan karakter ilegal URL."""
+    username = raw_username.strip().replace("@", "")
+    
+    # Jika input mengandung spasi (misal: "Rizki Auliyah Rahma")
+    if " " in username:
+        if platform in ["LinkedIn", "Medium"]:
+            # LinkedIn & Medium menggunakan tanda hubung (e.g. rizki-auliyah-rahma)
+            return "-".join(username.lower().split())
+        else:
+            # Platform lain biasanya tanpa spasi/di-combine (e.g. rizkiauliyahrahma)
+            return "".join(username.lower().split())
+            
+    return username.lower()
+
+async def _check_url(client, name, template, raw_username):
+    slug = clean_slug(raw_username, name)
+    if not slug:
         return {"platform": name, "found": False, "url": "#", "status_note": "❌ Username Kosong"}
 
-    # Otomatisasi penanganan format slug khusus LinkedIn
-    urls_to_check = []
-    if name == "LinkedIn":
-        # 1. Coba username persis yang diinput
-        urls_to_check.append(template.format(clean_user))
-        # 2. Jika tidak ada tanda strip, buat variasi otomatis (contoh: iqbalmantam -> iqbal-mantam)
-        if "-" not in clean_user:
-            # Jika user memasukkan "iqbalmantam", coba tambahkan pemisah kandidat umum
-            pass
-    else:
-        urls_to_check.append(template.format(clean_user))
-
+    url = template.format(quote(slug))
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
         "Accept-Language": "en-US,en;q=0.9,id;q=0.8",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
     }
 
-    final_url = template.format(clean_user)
-    
-    for target_url in urls_to_check:
-        try:
-            res = await client.get(target_url, headers=headers, timeout=6.0)
-            # Jika status 200 OK atau 999 (Anti-bot hit khas LinkedIn jika profil valid)
-            if (res.status_code == 200 and "404" not in str(res.url) and "login" not in str(res.url).lower()) or res.status_code == 999:
-                return {"platform": name, "found": True, "url": target_url, "status_note": "✅ Aktif / Terdeteksi"}
-        except Exception:
-            pass
+    try:
+        res = await client.get(url, headers=headers, timeout=6.0)
+        # Jika status 200 OK atau 999 (Anti-bot hit khas LinkedIn jika profil valid)
+        if (res.status_code == 200 and "404" not in str(res.url) and "login" not in str(res.url).lower()) or res.status_code == 999:
+            return {"platform": name, "found": True, "url": url, "status_note": "✅ Aktif / Terdeteksi"}
+    except Exception:
+        pass
 
-    return {"platform": name, "found": False, "url": final_url, "status_note": "❌ Tidak Ditemukan"}
+    return {"platform": name, "found": False, "url": url, "status_note": "❌ Tidak Ditemukan"}
 
 async def check_indonesia_socials(username: str):
-    clean_username = username.strip().replace("@", "")
-    if not clean_username:
+    if not username or not username.strip():
         return []
         
     async with httpx.AsyncClient(follow_redirects=True) as client:
-        tasks = []
-        for name, tmpl in PLATFORMS_INDO.items():
-            # Logika khusus: Jika memeriksa LinkedIn dan inputnya 'iqbalmantam', sesuaikan otomatis ke 'iqbal-mantam'
-            user_to_search = clean_username
-            if name == "LinkedIn" and "-" not in clean_username:
-                # Menangani pemetaan otomatis khusus untuk iqbalmantam -> iqbal-mantam
-                if clean_username.lower() == "iqbalmantam":
-                    user_to_search = "iqbal-mantam"
-
-            tasks.append(_check_url(client, name, tmpl, user_to_search))
-            
+        tasks = [
+            _check_url(client, name, tmpl, username)
+            for name, tmpl in PLATFORMS_INDO.items()
+        ]
         return await asyncio.gather(*tasks)
