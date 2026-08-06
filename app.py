@@ -197,10 +197,17 @@ if "osint_results" in st.session_state:
         st.subheader("🌐 Matrix Media Sosial (Auto Cross-Check & Dorking)")
         st.caption("Sistem memverifikasi status ketersediaan profil secara otomatis di latar belakang.")
         
-        if res["social_res"]:
+        if res.get("social_res"):
             df_s = pd.DataFrame(res["social_res"])
+            
+            # Pastikan kolom wajib ada (menghindari KeyError jika session_state menggunakan data lama)
+            expected_cols = ["platform", "status_check", "direct_url", "dork_url"]
+            for col in expected_cols:
+                if col not in df_s.columns:
+                    df_s[col] = "🟡 Perlu Diulas Manual" if col == "status_check" else "#"
+
             st.dataframe(
-                df_s[["platform", "status_check", "direct_url", "dork_url"]], 
+                df_s[expected_cols], 
                 column_config={
                     "platform": "Platform Target",
                     "status_check": "Verifikasi Otomatis",
