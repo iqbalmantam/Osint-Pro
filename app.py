@@ -45,8 +45,8 @@ st.markdown("""
     <div class="watermark">Created by iqbalmantam</div>
 """, unsafe_allow_html=True)
 
-st.title("🛡️ Indonesia Candidate OSINT Intelligence Engine")
-st.caption("Platform Background Check Kandidat (100% Real-Time & Live Connection)")
+st.title("🛡️ Background Check - OSINT")
+st.caption("Platform Background Check (100% Real-Time & Live Connection)")
 st.divider()
 
 # Sidebar Input
