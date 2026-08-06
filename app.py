@@ -16,24 +16,14 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS: Hanya sembunyikan Fork/GitHub/Footer TANPA menyembunyikan header atau kontrol sidebar
+# Custom CSS: Bersih, rapi, dan membiarkan kontrol navigasi sidebar asli tetap tampil sempurna
 st.markdown("""
     <style>
-    /* 1. Sembunyikan Footer & Menu Hamburger Bawaan */
+    /* 1. Sembunyikan footer & menu default yang tidak diperlukan */
     #MainMenu { display: none !important; }
     footer { display: none !important; }
 
-    /* 2. Sembunyikan khusus tombol Fork, Deploy, dan GitHub Icon di toolbar kanan atas */
-    div[data-testid="stToolbar"] { display: none !important; }
-    .stAppDeployButton { display: none !important; }
-    button[title="View source on GitHub"] { display: none !important; }
-
-    /* 3. Buat background header transparan agar menyatu dengan tema */
-    header[data-testid="stHeader"] {
-        background-color: transparent !important;
-    }
-
-    /* 4. Watermark di tengah bawah */
+    /* 2. Watermark di tengah bawah */
     .watermark {
         position: fixed;
         bottom: 15px;
