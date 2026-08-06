@@ -16,14 +16,23 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS: Bersih, rapi, dan membiarkan kontrol navigasi sidebar asli tetap tampil sempurna
+# Custom CSS: Sembunyikan Logo GitHub/Toolbar kanan tanpa mengganggu tombol sidebar (>>) di kiri
 st.markdown("""
     <style>
     /* 1. Sembunyikan footer & menu default yang tidak diperlukan */
     #MainMenu { display: none !important; }
     footer { display: none !important; }
 
-    /* 2. Watermark di tengah bawah */
+    /* 2. Sembunyikan Toolbar kanan (Logo GitHub, Share, Edit) */
+    div[data-testid="stToolbar"] {
+        display: none !important;
+        visibility: hidden !important;
+    }
+    .stAppDeployButton {
+        display: none !important;
+    }
+
+    /* 3. Watermark di tengah bawah */
     .watermark {
         position: fixed;
         bottom: 15px;
