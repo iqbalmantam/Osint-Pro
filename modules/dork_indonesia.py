@@ -44,3 +44,10 @@ def generate_indonesia_dorks(email: str, phone_info: dict, username: str = "", f
         })
 
     return dorks
+
+def generate_telecom_dorks(phone_intl: str):
+    """Integrasi Direct Search ke GetContact & Truecaller"""
+    return {
+        "getcontact": f"https://www.getcontact.com/en/unbind",
+        "truecaller": f"https://www.truecaller.com/search/id/{phone_intl}"
+    }
