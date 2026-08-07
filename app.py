@@ -109,8 +109,23 @@ if "results" in st.session_state:
         st.subheader("Analytics Kontak & Socials")
         st.write(f"**Provider:** {res['phone']['provider']}")
         st.write(f"**Format Lokal:** {res['phone']['local_format']}")
+        
         if res.get('social'):
-            st.dataframe(pd.DataFrame(res['social']), use_container_width=True)
+            st.write("---")
+            st.write("**Daftar Tautan Pencarian Media Sosial (Klik untuk Membuka):**")
+            
+            # Menampilkan setiap platform dalam baris interaktif agar tautan bisa diklik langsung
+            for item in res['social']:
+                col_a, col_b, col_c = st.columns([1.5, 2, 2.5])
+                with col_a:
+                    st.markdown(f"**{item.get('platform')}**")
+                with col_b:
+                    st.markdown(f"Status: `{item.get('status_check')}`")
+                with col_c:
+                    url = item.get('dork_url')
+                    if url:
+                        st.markdown(f"[🔗 Buka Tautan Pencarian]({url})", unsafe_allow_html=True)
+                st.write("")
         else:
             st.info("Tidak ada target sosial media/username yang diproses.")
             
