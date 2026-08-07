@@ -4,7 +4,7 @@ import time
 import streamlit as st
 import pandas as pd
 from modules.breach_checker import check_data_breach
-from modules.dork_indonesia import generate_indonesia_dorks, generate_telecom_dorks
+from modules.dork_indonesia import generate_precise_dorks, generate_telecom_dorks
 from modules.identity_osint import check_email_identity
 from modules.indo_telecom import analyze_indonesia_phone
 from modules.social_osint import check_indonesia_socials
@@ -63,7 +63,9 @@ if btn_submit:
         time.sleep(0.1)
         
         breach_res = asyncio.run(check_data_breach(email_in))
-        dorks = generate_indonesia_dorks(email_in, phone_data, username_in, name_in, city_in, company_in)
+        
+        # Menggunakan dork presisi berbasis dokumen forensik
+        dorks = generate_precise_dorks(name_in)
         
         # Dynamic Risk Scoring
         risk_score = 100
@@ -104,7 +106,7 @@ if "results" in st.session_state:
 
     st.divider()
     
-    tab1, tab2, tab3, tab4 = st.tabs(["📱 Telecom & Socials", "⚠️ Leak Intelligence", "🔎 Visual Search", "⚖️ Dorking & Report"])
+    tab1, tab2, tab3, tab4 = st.tabs(["📱 Telecom & Socials", "⚠️ Leak Intelligence", "🔎 Visual Search", "⚖️ Dokumen Forensik"])
     
     with tab1:
         st.subheader("Analytics Kontak & Socials")
@@ -132,8 +134,11 @@ if "results" in st.session_state:
             st.info("Unggah foto pada panel sidebar untuk mengaktifkan opsi visual search.")
             
     with tab4:
-        st.subheader("Legal Dorking Links")
-        for d in res['dorks']:
-            st.markdown(f"##### {d['title']}")
-            st.code(d['query'], language="text")
-            st.markdown(f"[Buka Link Dork]({d['link']})")
+        st.subheader("Pencarian Dokumen Forensik (PDF/DOCX/XLSX)")
+        if res['dorks']:
+            for d in res['dorks']:
+                st.markdown(f"##### {d['title']}")
+                st.code(d['query'], language="text")
+                st.markdown(f"[👉 Buka Tautan Pencarian Dokumen]({d['link']})")
+        else:
+            st.info("Masukkan Nama Lengkap pada sidebar untuk mengaktifkan pencarian dokumen forensik.")
