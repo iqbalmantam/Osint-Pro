@@ -2,7 +2,7 @@ from urllib.parse import quote_plus
 
 
 def generate_pddikti_dorks(target_init, company_or_city="", nim_in=""):
-  """Membangun tautan pencarian langsung kategori Mahasiswa/Dosen dan Dorking rekam akademik."""
+  """Membangun tautan pencarian langsung ke portal resmi PDDikti dan rekam akademik."""
   if not target_init and not nim_in:
     return []
 
@@ -10,25 +10,22 @@ def generate_pddikti_dorks(target_init, company_or_city="", nim_in=""):
   clean_target = target_init.strip() if target_init else ""
   clean_nim = nim_in.strip() if nim_in else ""
 
-  # 1. Direct Search Kategori Mahasiswa via NIM (Paling Akurat)
-  if clean_nim:
-    direct_mhs_nim = f"https://pddikti.kemdiktisaintek.go.id/data/student/{quote_plus(clean_nim)}"
+  # Target prioritas untuk pre-fill / referensi pencarian
+  primary_query = clean_nim if clean_nim else clean_target
+
+  # 1. Direct Link ke Beranda Utama PDDikti (Portal Resmi Bebas Error 404)
+  if primary_query:
+    direct_portal_url = (
+        "https://pddikti.kemdiktisaintek.go.id/?q="
+        f"{quote_plus(primary_query)}"
+    )
     dorks.append({
-        "title": "🎯 [MAHASISWA] Verifikasi Langsung via NIM di PDDikti",
-        "query": f"Direct Student NIM -> {clean_nim}",
-        "link": direct_mhs_nim,
+        "title": "🏛️ [OFFICIAL] Buka Portal Utama PDDikti",
+        "query": f"Portal Query -> {primary_query}",
+        "link": direct_portal_url,
     })
 
-  # 2. Direct Search Kategori Mahasiswa via Keyword / Nama
-  if clean_target:
-    direct_mhs_keyword = f"https://pddikti.kemdiktisaintek.go.id/search/{quote_plus(clean_target)}"
-    dorks.append({
-        "title": "🎓 [MAHASISWA] Verifikasi Portal Resmi PDDikti (Keyword Search)",
-        "query": f"Direct Keyword -> {clean_target}",
-        "link": direct_mhs_keyword,
-    })
-
-  # 3. Google Dorking Cadangan (Repository Kampus / ac.id)
+  # 2. Google Dorking Cadangan (Repository Kampus / ac.id)
   if clean_target:
     extra_str = f' "{company_or_city.strip()}"' if company_or_city else ""
     formatted_target = (
