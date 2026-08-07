@@ -111,19 +111,17 @@ if "results" in st.session_state:
         
         if res.get('social'):
             st.write("---")
-            st.write("**Daftar Tautan Pencarian Media Sosial (Klik untuk Membuka):**")
-            
-            for item in res['social']:
-                col_a, col_b, col_c = st.columns([1.5, 2, 2.5])
-                with col_a:
-                    st.markdown(f"**{item.get('platform')}**")
-                with col_b:
-                    st.markdown(f"Status: `{item.get('status_check')}`")
-                with col_c:
-                    url = item.get('dork_url')
-                    if url:
-                        st.markdown(f"[🔗 Buka Tautan Pencarian]({url})", unsafe_allow_html=True)
-                st.write("")
+            st.dataframe(
+                pd.DataFrame(res['social']),
+                column_config={
+                    "platform": "Platform",
+                    "status_check": "Status",
+                    "direct_url": st.column_config.LinkColumn("Direct URL"),
+                    "dork_url": st.column_config.LinkColumn("Dork URL")
+                },
+                hide_index=True,
+                use_container_width=True
+            )
         else:
             st.info("Tidak ada target sosial media/username yang diproses.")
             
