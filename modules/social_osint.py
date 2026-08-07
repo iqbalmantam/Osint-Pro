@@ -9,15 +9,25 @@ async def check_indonesia_socials(username):
     return []
 
   clean_user = username.strip()
-  # Jika username mengandung spasi (seperti nama lengkap), pisahkan dengan spasi atau beri tanda kutip
-  formatted_query = f'"{clean_user}"' if " " in clean_user else clean_user
 
+  # Menggunakan spasi agar Google tidak mendeteksi sebagai typo yang digabung
   platforms = {
-      "Instagram": f"https://www.google.com/search?q=site:instagram.com+{quote_plus(clean_user)}",
-      "TikTok": f"https://www.google.com/search?q=site:tiktok.com+{quote_plus(clean_user)}",
-      "X (Twitter)": f"https://www.google.com/search?q=site:x.com+{quote_plus(clean_user)}",
-      "LinkedIn": f"https://www.google.com/search?q=site:linkedin.com/in+{quote_plus(clean_user)}",
-      "Facebook": f"https://www.google.com/search?q=site:facebook.com+{quote_plus(clean_user)}",
+      "Instagram": (
+          f"https://www.google.com/search?q=site:instagram.com {quote_plus(clean_user)}"
+      ),
+      "TikTok": (
+          f"https://www.google.com/search?q=site:tiktok.com {quote_plus(clean_user)}"
+      ),
+      "X (Twitter)": (
+          f"https://www.google.com/search?q=site:x.com {quote_plus(clean_user)}"
+      ),
+      "LinkedIn": (
+          f"https://www.google.com/search?q=site:linkedin.com/in"
+          f" {quote_plus(clean_user)}"
+      ),
+      "Facebook": (
+          f"https://www.google.com/search?q=site:facebook.com {quote_plus(clean_user)}"
+      ),
   }
 
   results = []
