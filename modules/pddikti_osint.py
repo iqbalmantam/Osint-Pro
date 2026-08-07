@@ -12,12 +12,12 @@ def generate_pddikti_dorks(target_init, company_or_city="", nim_in=""):
 
   primary_query = clean_nim if clean_nim else clean_target
 
-  # 1. Official Portal Link dengan instruksi jelas
+  # 1. Official Portal Link dengan teks referensi
   if primary_query:
     dorks.append({
         "title": (
-            "🏛️ [OFFICIAL] Buka Portal PDDikti (Gunakan tombol 'Copy' di kanan"
-            " kotak kode)"
+            "🏛️ [OFFICIAL] Portal PDDikti (Salin NIM/Keyword di bawah, lalu"
+            " Paste ke Portal)"
         ),
         "query": primary_query,
         "link": "https://pddikti.kemdiktisaintek.go.id/",
