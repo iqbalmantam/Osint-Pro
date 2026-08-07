@@ -1,5 +1,6 @@
 import asyncio
 import json
+import time
 import streamlit as st
 import pandas as pd
 from modules.breach_checker import check_data_breach
