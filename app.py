@@ -83,7 +83,6 @@ if btn_submit:
         time.sleep(0.3)
         progress_bar.empty()
         
-        # Menyimpan seluruh state termasuk name_in agar aman
         st.session_state["results"] = {
             "score": risk_score, "notes": risk_notes, "phone": phone_data,
             "identity": identity_res, "social": social_res, "breach": breach_res,
@@ -117,8 +116,21 @@ if "results" in st.session_state:
         st.write(f"**Provider:** {res['phone']['provider']}")
         st.write(f"**Format Lokal:** {res['phone']['local_format']}")
         st.write(f"**Target Handle/Username Diproses:** `{res.get('target_social', 'N/A')}`")
+        
         if res.get('social'):
-            st.dataframe(pd.DataFrame(res['social']), use_container_width=True)
+            st.write("---")
+            # Menampilkan daftar sosial media dalam bentuk card interaktif agar link bisa diklik
+            for item in res['social']:
+                col_a, col_b, col_c = st.columns([1.5, 2, 2])
+                with col_a:
+                    st.markdown(f"**{item.get('platform')}**")
+                with col_b:
+                    st.markdown(f"Status: `{item.get('status_check')}`")
+                with col_c:
+                    direct = item.get('direct_url')
+                    if direct:
+                        st.markdown(f"[🔗 Buka Profil]({direct})", unsafe_allow_html=True)
+                st.write("")
         else:
             st.info("Tidak ada target sosial media/username yang diproses.")
             
