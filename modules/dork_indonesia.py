@@ -1,11 +1,12 @@
 from urllib.parse import quote_plus
 
 def generate_precise_dorks(name_in):
-    """Menghasilkan dork yang berfokus pada dokumen/file."""
+    """Menghasilkan dork dokumen dengan format yang lebih fleksibel."""
     if not name_in: 
         return []
         
-    query = f'"{name_in}" (filetype:pdf OR filetype:docx OR filetype:xlsx)'
+    # Menggunakan OR tanpa tanda kurung rapat agar Google membacanya lebih leluasa
+    query = f'"{name_in}" filetype:pdf OR filetype:docx'
     
     return [{
         "title": "📄 Pencarian Dokumen Forensik (PDF/DOCX)",
@@ -14,7 +15,7 @@ def generate_precise_dorks(name_in):
     }]
 
 def generate_telecom_dorks(intl_format):
-    """Fungsi ini tetap diperlukan oleh app.py untuk lookup nomor telepon."""
+    """Fungsi lookup nomor telepon."""
     clean_intl = intl_format.strip() if intl_format else ""
     return {
         "truecaller": f"https://www.truecaller.com/search/in/{clean_intl.replace('+', '')}",
