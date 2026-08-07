@@ -11,9 +11,9 @@ def generate_indonesia_dorks(
   clean_email = email_in.strip() if email_in else ""
   clean_phone = phone_data.get("local_format", "") if phone_data else ""
 
-  # 1. Dorking Nama Lengkap di Media / Portal Publik Indonesia
+  # 1. Dorking Nama Lengkap di Portal Berita & Forum (Format Query Dipisah agar Valid)
   if clean_name:
-    query_name = f'"{clean_name}" (site:detik.com OR site:kompas.com OR site:kumparan.com OR site:kaskus.co.id)'
+    query_name = f'"{clean_name}" site:detik.com OR site:kompas.com OR site:kumparan.com OR site:kaskus.co.id'
     dorks.append({
         "title": "📰 Pindai Nama di Portal Berita & Forum Nasional",
         "query": query_name,
