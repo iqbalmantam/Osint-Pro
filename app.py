@@ -95,9 +95,6 @@ with st.sidebar:
     name_in = st.text_input(
         "Nama Lengkap Kandidat", placeholder="contoh: Budi Santoso"
     )
-    nim_in = st.text_input(
-        "NIM Mahasiswa (Opsional)", placeholder="contoh: 9817043428"
-    )
 
     with st.expander("⚙️ Refinement Filters (Opsional)"):
         city_in = st.text_input("Kota / Domisili", placeholder="contoh: Jakarta")
@@ -180,9 +177,9 @@ if btn_submit:
             email_in, phone_data, username_in, name_in, city_in, company_in
         )
         
-        # PDDikti integration dengan dukungan NIM
+        # PDDikti fallback: Pakai name_in jika ada, jika tidak ada pakai username_in
         academic_target = name_in.strip() if name_in.strip() else username_in.strip()
-        pddikti_dorks = generate_pddikti_dorks(academic_target, company_in or city_in, nim_in)
+        pddikti_dorks = generate_pddikti_dorks(academic_target, company_in or city_in)
         time.sleep(0.2)
 
         progress_bar.progress(95, text="📊 Menghitung Dynamic Risk Score...")
@@ -207,6 +204,7 @@ if btn_submit:
             risk_notes.append(
                 "Email terdeteksi dalam insiden Kebocoran Data (Data Breach)."
             )
+        # Kurangi poin HANYA jika dua-duanya (GitHub DAN Gravatar) tidak ada
         if not has_github and not has_gravatar:
             risk_score -= 15
             risk_notes.append(
@@ -227,7 +225,6 @@ if btn_submit:
             "phone_data": phone_data,
             "username_in": username_in,
             "name_in": name_in,
-            "nim_in": nim_in,
             "city_in": city_in,
             "company_in": company_in,
             "identity_res": identity_res,
@@ -359,23 +356,17 @@ if "osint_results" in st.session_state:
             )
 
     with tab3:
-      st.subheader("🎓 Verifikasi Rekam Akademik & PDDikti")
-      if res.get("pddikti_dorks"):
-        for i, p in enumerate(res["pddikti_dorks"]):
-          st.markdown(f"##### {p['title']}")
-          # Menggunakan text_input agar ada tombol copy bawaan Streamlit yang sangat mudah digunakan
-          st.text_input(
-              "Kata Kunci / NIM (Klik ikon copy di sebelah kanan):",
-              value=p["query"],
-              key=f"copy_field_{i}",
-          )
-          st.markdown(f"[👉 Buka Beranda Resmi PDDikti]({p['link']})")
-          st.write("---")
-      else:
-        st.info(
-            "Masukkan Nama, Username, atau NIM untuk mengaktifkan pencarian"
-            " PDDikti."
-        )
+        st.subheader("🎓 Verifikasi Rekam Akademik & PDDikti")
+        if res.get("pddikti_dorks"):
+            for p in res["pddikti_dorks"]:
+                st.markdown(f"##### {p['title']}")
+                st.code(p["query"], language="text")
+                st.markdown(f"[👉 Eksekusi Pencarian di Google]({p['link']})")
+                st.write("")
+        else:
+            st.info(
+                "Masukkan Nama Lengkap atau Username untuk mengaktifkan pencarian PDDikti."
+            )
 
     with tab4:
         st.subheader("🖼️ Reverse Image Search Engine")
@@ -452,7 +443,6 @@ if "osint_results" in st.session_state:
             <h1>🛡️ Official OSINT Executive Candidate Audit</h1>
             <div class="box">
                 <p><b>Nama Kandidat:</b> {res['name_in'] or 'N/A'}</p>
-                <p><b>NIM:</b> {res['nim_in'] or 'N/A'}</p>
                 <p><b>Email Utama:</b> {mask_text(res['email_in'], 'email')}</p>
                 <p><b>Nomor Kontak:</b> {mask_text(res['phone_data']['local_format'], 'phone')} ({res['phone_data']['provider']})</p>
                 <p><b>Kota / Domisili:</b> {res['city_in'] or 'N/A'}</p>
@@ -492,7 +482,6 @@ if "osint_results" in st.session_state:
 
         summary_df = pd.DataFrame([{
             "Nama": res["name_in"],
-            "NIM": res["nim_in"],
             "Email": res["email_in"],
             "Phone": res["phone_data"]["local_format"],
             "Provider": res["phone_data"]["provider"],
