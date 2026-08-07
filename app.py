@@ -26,19 +26,21 @@ st.title("🛡️ OSINT Engine Pro v4.0")
 st.caption("Enterprise Candidate Investigation & Verification Platform")
 st.divider()
 
+# Menggunakan st.form agar input di sidebar stabil dan tidak ter-reset
 with st.sidebar:
     st.header("📌 Input Identitas")
-    email_in = st.text_input("Email Utama*", placeholder="contoh: kandidat@gmail.com")
-    phone_in = st.text_input("Nomor HP*", placeholder="contoh: 08123456789")
-    username_in = st.text_input("Username / Handle Medsos", placeholder="opsional")
-    name_in = st.text_input("Nama Lengkap", placeholder="contoh: Budi Santoso")
-    uploaded_file = st.file_uploader("📂 Unggah Foto Kandidat (Visual Search)", type=['jpg', 'png'])
-    
-    with st.expander("⚙️ Advanced Settings"):
-        city_in = st.text_input("Domisili")
-        company_in = st.text_input("Perusahaan Terakhir")
-    
-    btn_submit = st.button("🚀 Jalankan Investigasi Mendalam", type="primary", use_container_width=True)
+    with st.form("osint_form"):
+        email_in = st.text_input("Email Utama*", placeholder="contoh: kandidat@gmail.com")
+        phone_in = st.text_input("Nomor HP*", placeholder="contoh: 08123456789")
+        username_in = st.text_input("Username / Handle Medsos", placeholder="opsional")
+        name_in = st.text_input("Nama Lengkap", placeholder="contoh: Budi Santoso")
+        uploaded_file = st.file_uploader("📂 Unggah Foto Kandidat (Visual Search)", type=['jpg', 'png'])
+        
+        with st.expander("⚙️ Advanced Settings"):
+            city_in = st.text_input("Domisili")
+            company_in = st.text_input("Perusahaan Terakhir")
+        
+        btn_submit = st.form_submit_button("🚀 Jalankan Investigasi Mendalam", use_container_width=True)
 
 if btn_submit:
     if not email_in or not phone_in:
@@ -53,7 +55,7 @@ if btn_submit:
         identity_res = asyncio.run(check_email_identity(email_in))
         time.sleep(0.1)
         
-        # Optimalisasi target sosial: utamakan input username, jika kosong gunakan nama lengkap tanpa spasi
+        # Optimalisasi target sosial
         target_social = username_in.strip() if username_in and username_in.strip() != "opsional" else ""
         if not target_social and name_in:
             target_social = name_in.replace(" ", "").lower()
@@ -81,11 +83,12 @@ if btn_submit:
         time.sleep(0.3)
         progress_bar.empty()
         
+        # Menyimpan seluruh state termasuk name_in agar aman
         st.session_state["results"] = {
             "score": risk_score, "notes": risk_notes, "phone": phone_data,
             "identity": identity_res, "social": social_res, "breach": breach_res,
             "dorks": dorks, "telecom_links": telecom_links, "email": email_in,
-            "target_social": target_social
+            "target_social": target_social, "name_in": name_in
         }
         st.rerun()
 
