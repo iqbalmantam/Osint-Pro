@@ -1,31 +1,31 @@
 from urllib.parse import quote_plus
 
 
-def generate_pddikti_dorks(target_input, company_or_city="", nim_in=""):
-  """Membangun tautan pencarian langsung berbasis NIM/Nama dan Dorking rekam akademik."""
-  if not target_input and not nim_in:
+def generate_pddikti_dorks(target_init, company_or_city="", nim_in=""):
+  """Membangun tautan pencarian langsung kategori Mahasiswa/Dosen dan Dorking rekam akademik."""
+  if not target_init and not nim_in:
     return []
 
   dorks = []
-  clean_target = target_input.strip() if target_input else ""
+  clean_target = target_init.strip() if target_init else ""
   clean_nim = nim_in.strip() if nim_in else ""
 
-  # 1. Jika NIM diisi, arahkan langsung ke query NIM (100% akurat tanpa reCAPTCHA blocking URL)
+  # 1. Direct Search Kategori Mahasiswa via NIM (Paling Akurat)
   if clean_nim:
-    direct_pddikti_url = f"https://pddikti.kemdiktisaintek.go.id/search/{quote_plus(clean_nim)}"
+    direct_mhs_nim = f"https://pddikti.kemdiktisaintek.go.id/data/student/{quote_plus(clean_nim)}"
     dorks.append({
-        "title": "🎯 [HIGH ACCURACY] Verifikasi Langsung via NIM di Portal PDDikti",
-        "query": f"Direct NIM Query -> {clean_nim}",
-        "link": direct_pddikti_url,
+        "title": "🎯 [MAHASISWA] Verifikasi Langsung via NIM di PDDikti",
+        "query": f"Direct Student NIM -> {clean_nim}",
+        "link": direct_mhs_nim,
     })
 
-  # 2. Direct Search Link Portal PDDikti berbasis Nama/Keyword
+  # 2. Direct Search Kategori Mahasiswa via Keyword / Nama
   if clean_target:
-    direct_pddikti_url = f"https://pddikti.kemdiktisaintek.go.id/search/{quote_plus(clean_target)}"
+    direct_mhs_keyword = f"https://pddikti.kemdiktisaintek.go.id/search/{quote_plus(clean_target)}"
     dorks.append({
-        "title": "🏛️ Verifikasi Portal Resmi PDDikti (Keyword Search)",
-        "query": f"Direct Query -> {clean_target}",
-        "link": direct_pddikti_url,
+        "title": "🎓 [MAHASISWA] Verifikasi Portal Resmi PDDikti (Keyword Search)",
+        "query": f"Direct Keyword -> {clean_target}",
+        "link": direct_mhs_keyword,
     })
 
   # 3. Google Dorking Cadangan (Repository Kampus / ac.id)
