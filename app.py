@@ -4,7 +4,7 @@ import time
 import streamlit as st
 import pandas as pd
 from modules.breach_checker import check_data_breach
-from modules.dork_indonesia import generate_precise_dorks, generate_telecom_dorks
+from modules.dork_indonesia import generate_indonesia_dorks, generate_telecom_dorks
 from modules.identity_osint import check_email_identity
 from modules.indo_telecom import analyze_indonesia_phone
 from modules.social_osint import check_indonesia_socials
@@ -26,21 +26,19 @@ st.title("🛡️ OSINT Engine Pro v4.0")
 st.caption("Enterprise Candidate Investigation & Verification Platform")
 st.divider()
 
-# Menggunakan st.form agar input di sidebar stabil dan tidak ter-reset
 with st.sidebar:
     st.header("📌 Input Identitas")
-    with st.form("osint_form"):
-        email_in = st.text_input("Email Utama*", placeholder="contoh: kandidat@gmail.com")
-        phone_in = st.text_input("Nomor HP*", placeholder="contoh: 08123456789")
-        username_in = st.text_input("Username / Handle Medsos", placeholder="opsional")
-        name_in = st.text_input("Nama Lengkap", placeholder="contoh: Budi Santoso")
-        uploaded_file = st.file_uploader("📂 Unggah Foto Kandidat (Visual Search)", type=['jpg', 'png'])
-        
-        with st.expander("⚙️ Advanced Settings"):
-            city_in = st.text_input("Domisili")
-            company_in = st.text_input("Perusahaan Terakhir")
-        
-        btn_submit = st.form_submit_button("🚀 Jalankan Investigasi Mendalam", use_container_width=True)
+    email_in = st.text_input("Email Utama*", placeholder="contoh: kandidat@gmail.com")
+    phone_in = st.text_input("Nomor HP*", placeholder="contoh: 08123456789")
+    username_in = st.text_input("Username / Handle Medsos", placeholder="opsional")
+    name_in = st.text_input("Nama Lengkap", placeholder="contoh: Budi Santoso")
+    uploaded_file = st.file_uploader("📂 Unggah Foto Kandidat (Visual Search)", type=['jpg', 'png'])
+    
+    with st.expander("⚙️ Advanced Settings"):
+        city_in = st.text_input("Domisili")
+        company_in = st.text_input("Perusahaan Terakhir")
+    
+    btn_submit = st.button("🚀 Jalankan Investigasi Mendalam", type="primary", use_container_width=True)
 
 if btn_submit:
     if not email_in or not phone_in:
@@ -55,19 +53,16 @@ if btn_submit:
         identity_res = asyncio.run(check_email_identity(email_in))
         time.sleep(0.1)
         
-        # Optimalisasi target sosial
-        target_social = username_in.strip() if username_in and username_in.strip() != "opsional" else ""
+        target_social = username_in.strip() if username_in else ""
         if not target_social and name_in:
-            target_social = name_in.replace(" ", "").lower()
+            variations = generate_username_variations(name_in)
+            target_social = variations[0] if variations else ""
             
         social_res = asyncio.run(check_indonesia_socials(target_social)) if target_social else []
         time.sleep(0.1)
         
         breach_res = asyncio.run(check_data_breach(email_in))
-        
-        # Memastikan nama lengkap terbaca dengan aman untuk dork forensik
-        clean_name_dork = name_in.strip() if name_in else ""
-        dorks = generate_precise_dorks(clean_name_dork)
+        dorks = generate_indonesia_dorks(email_in, phone_data, username_in, name_in, city_in, company_in)
         
         # Dynamic Risk Scoring
         risk_score = 100
@@ -86,8 +81,7 @@ if btn_submit:
         st.session_state["results"] = {
             "score": risk_score, "notes": risk_notes, "phone": phone_data,
             "identity": identity_res, "social": social_res, "breach": breach_res,
-            "dorks": dorks, "telecom_links": telecom_links, "email": email_in,
-            "target_social": target_social, "name_in": name_in
+            "dorks": dorks, "telecom_links": telecom_links, "email": email_in
         }
         st.rerun()
 
@@ -109,28 +103,14 @@ if "results" in st.session_state:
 
     st.divider()
     
-    tab1, tab2, tab3, tab4 = st.tabs(["📱 Telecom & Socials", "⚠️ Leak Intelligence", "🔎 Visual Search", "⚖️ Dokumen Forensik"])
+    tab1, tab2, tab3, tab4 = st.tabs(["📱 Telecom & Socials", "⚠️ Leak Intelligence", "🔎 Visual Search", "⚖️ Dorking & Report"])
     
     with tab1:
         st.subheader("Analytics Kontak & Socials")
         st.write(f"**Provider:** {res['phone']['provider']}")
         st.write(f"**Format Lokal:** {res['phone']['local_format']}")
-        st.write(f"**Target Handle/Username Diproses:** `{res.get('target_social', 'N/A')}`")
-        
         if res.get('social'):
-            st.write("---")
-            # Menampilkan daftar sosial media dalam bentuk card interaktif agar link bisa diklik
-            for item in res['social']:
-                col_a, col_b, col_c = st.columns([1.5, 2, 2])
-                with col_a:
-                    st.markdown(f"**{item.get('platform')}**")
-                with col_b:
-                    st.markdown(f"Status: `{item.get('status_check')}`")
-                with col_c:
-                    direct = item.get('direct_url')
-                    if direct:
-                        st.markdown(f"[🔗 Buka Profil]({direct})", unsafe_allow_html=True)
-                st.write("")
+            st.dataframe(pd.DataFrame(res['social']), use_container_width=True)
         else:
             st.info("Tidak ada target sosial media/username yang diproses.")
             
@@ -151,11 +131,8 @@ if "results" in st.session_state:
             st.info("Unggah foto pada panel sidebar untuk mengaktifkan opsi visual search.")
             
     with tab4:
-        st.subheader("Pencarian Dokumen Forensik (PDF/DOCX/XLSX)")
-        if res['dorks']:
-            for d in res['dorks']:
-                st.markdown(f"##### {d['title']}")
-                st.code(d['query'], language="text")
-                st.markdown(f"[👉 Buka Tautan Pencarian Dokumen]({d['link']})")
-        else:
-            st.info("Masukkan Nama Lengkap pada sidebar untuk mengaktifkan pencarian dokumen forensik.")
+        st.subheader("Legal Dorking Links")
+        for d in res['dorks']:
+            st.markdown(f"##### {d['title']}")
+            st.code(d['query'], language="text")
+            st.markdown(f"[Buka Link Dork]({d['link']})")
