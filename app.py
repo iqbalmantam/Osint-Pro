@@ -95,7 +95,7 @@ if "results" in st.session_state:
     
     c1, c2 = st.columns([1, 3])
     with c1:
-        st.markdown(f"<div class='risk-score'>{res['score']}/100</div>", unsafe_action=True)
+        st.markdown(f"<div class='risk-score'>{res['score']}/100</div>", unsafe_allow_html=True)
         st.write(f"**Risk Level:** {'High Risk' if res['score'] < 60 else 'Low/Medium Risk'}")
     
     with c2:
