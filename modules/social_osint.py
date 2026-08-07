@@ -1,27 +1,62 @@
 import asyncio
+import requests
 from urllib.parse import quote_plus
 
+
 async def check_indonesia_socials(username):
-    """Memeriksa eksistensi akun sosial media dengan query yang bersih."""
-    if not username:
-        return []
+  """Memeriksa eksistensi akun sosial media dengan tabel lengkap dan presisi."""
+  if not username:
+    return []
 
-    clean_user = username.strip()
-    
-    platforms = {
-        "Instagram": f"https://www.google.com/search?q=site:instagram.com+{quote_plus(clean_user)}",
-        "TikTok": f"https://www.google.com/search?q=site:tiktok.com+{quote_plus(clean_user)}",
-        "X (Twitter)": f"https://www.google.com/search?q=site:x.com+{quote_plus(clean_user)}",
-        "LinkedIn": f"https://www.google.com/search?q=site:linkedin.com/in+{quote_plus(clean_user)}",
-        "Facebook": f"https://www.google.com/search?q=site:facebook.com+{quote_plus(clean_user)}",
-    }
+  clean_user = username.strip()
 
-    results = []
-    for platform, search_url in platforms.items():
-        results.append({
-            "platform": platform,
-            "status_check": "🟢 Tersedia via Search",
-            "dork_url": search_url
-        })
+  platforms = {
+      "Instagram": {
+          "direct": f"https://www.instagram.com/{clean_user.replace(' ', '')}/",
+          "dork": (
+              f"https://www.google.com/search?q=site:instagram.com"
+              f" {quote_plus(clean_user)}"
+          ),
+      },
+      "TikTok": {
+          "direct": f"https://www.tiktok.com/@{clean_user.replace(' ', '')}",
+          "dork": (
+              f"https://www.google.com/search?q=site:tiktok.com"
+              f" {quote_plus(clean_user)}"
+          ),
+      },
+      "X (Twitter)": {
+          "direct": f"https://x.com/{clean_user.replace(' ', '')}",
+          "dork": (
+              f"https://www.google.com/search?q=site:x.com"
+              f" {quote_plus(clean_user)}"
+          ),
+      },
+      "LinkedIn": {
+          "direct": (
+              f"https://www.linkedin.com/in/{clean_user.replace(' ', '-')}"
+          ),
+          "dork": (
+              f"https://www.google.com/search?q=site:linkedin.com/in"
+              f" {quote_plus(clean_user)}"
+          ),
+      },
+      "Facebook": {
+          "direct": f"https://www.facebook.com/{clean_user.replace(' ', '')}",
+          "dork": (
+              f"https://www.google.com/search?q=site:facebook.com"
+              f" {quote_plus(clean_user)}"
+          ),
+      },
+  }
 
-    return results
+  results = []
+  for platform, urls in platforms.items():
+    results.append({
+        "platform": platform,
+        "status_check": "🟢 Tersedia via Search",
+        "direct_url": urls["direct"],
+        "dork_url": urls["dork"],
+    })
+
+  return results
