@@ -53,10 +53,10 @@ if btn_submit:
         identity_res = asyncio.run(check_email_identity(email_in))
         time.sleep(0.1)
         
-        target_social = username_in.strip() if username_in else ""
+        # PERBAIKAN: Gunakan input username jika ada, jika tidak gunakan nama lengkap aslinya (pertahankan spasi)
+        target_social = username_in.strip() if username_in and username_in.strip() != "opsional" else ""
         if not target_social and name_in:
-            variations = generate_username_variations(name_in)
-            target_social = variations[0] if variations else ""
+            target_social = name_in.strip()
             
         social_res = asyncio.run(check_indonesia_socials(target_social)) if target_social else []
         time.sleep(0.1)
@@ -81,7 +81,8 @@ if btn_submit:
         st.session_state["results"] = {
             "score": risk_score, "notes": risk_notes, "phone": phone_data,
             "identity": identity_res, "social": social_res, "breach": breach_res,
-            "dorks": dorks, "telecom_links": telecom_links, "email": email_in
+            "dorks": dorks, "telecom_links": telecom_links, "email": email_in,
+            "target_social": target_social
         }
         st.rerun()
 
@@ -109,12 +110,12 @@ if "results" in st.session_state:
         st.subheader("Analytics Kontak & Socials")
         st.write(f"**Provider:** {res['phone']['provider']}")
         st.write(f"**Format Lokal:** {res['phone']['local_format']}")
+        st.write(f"**Target Keyword Diproses:** `{res.get('target_social', 'N/A')}`")
         
         if res.get('social'):
             st.write("---")
             st.write("**Daftar Tautan Pencarian Media Sosial (Klik untuk Membuka):**")
             
-            # Menampilkan setiap platform dalam baris interaktif agar tautan bisa diklik langsung
             for item in res['social']:
                 col_a, col_b, col_c = st.columns([1.5, 2, 2.5])
                 with col_a:
