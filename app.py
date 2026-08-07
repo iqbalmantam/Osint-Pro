@@ -359,17 +359,23 @@ if "osint_results" in st.session_state:
             )
 
     with tab3:
-        st.subheader("🎓 Verifikasi Rekam Akademik & PDDikti")
-        for p in res.get("pddikti_dorks", []):
-            st.markdown(f"##### {p['title']}")
-            # Ini akan menampilkan NIM/Nama agar bisa di-copy
-            st.code(p['query'], language="text") 
-            st.markdown(f"[👉 Buka Portal PDDikti]({p['link']})")
-            st.write("")
-        else:
-            st.info(
-                "Masukkan Nama, Username, atau NIM untuk mengaktifkan pencarian PDDikti."
-            )
+      st.subheader("🎓 Verifikasi Rekam Akademik & PDDikti")
+      if res.get("pddikti_dorks"):
+        for i, p in enumerate(res["pddikti_dorks"]):
+          st.markdown(f"##### {p['title']}")
+          # Menggunakan text_input agar ada tombol copy bawaan Streamlit yang sangat mudah digunakan
+          st.text_input(
+              "Kata Kunci / NIM (Klik ikon copy di sebelah kanan):",
+              value=p["query"],
+              key=f"copy_field_{i}",
+          )
+          st.markdown(f"[👉 Buka Beranda Resmi PDDikti]({p['link']})")
+          st.write("---")
+      else:
+        st.info(
+            "Masukkan Nama, Username, atau NIM untuk mengaktifkan pencarian"
+            " PDDikti."
+        )
 
     with tab4:
         st.subheader("🖼️ Reverse Image Search Engine")
