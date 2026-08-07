@@ -360,12 +360,12 @@ if "osint_results" in st.session_state:
 
     with tab3:
         st.subheader("🎓 Verifikasi Rekam Akademik & PDDikti")
-        if res.get("pddikti_dorks"):
-            for p in res["pddikti_dorks"]:
-                st.markdown(f"##### {p['title']}")
-                st.code(p["query"], language="text")
-                st.markdown(f"[👉 Eksekusi Pencarian di Google/Portal]({p['link']})")
-                st.write("")
+        for p in res.get("pddikti_dorks", []):
+            st.markdown(f"##### {p['title']}")
+            # Ini akan menampilkan NIM/Nama agar bisa di-copy
+            st.code(p['query'], language="text") 
+            st.markdown(f"[👉 Buka Portal PDDikti]({p['link']})")
+            st.write("")
         else:
             st.info(
                 "Masukkan Nama, Username, atau NIM untuk mengaktifkan pencarian PDDikti."
