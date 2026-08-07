@@ -2,7 +2,7 @@ from urllib.parse import quote_plus
 
 
 def generate_pddikti_dorks(target_init, company_or_city="", nim_in=""):
-  """Membangun tautan pencarian langsung ke portal resmi PDDikti dan rekam akademik."""
+  """Membangun tautan ke portal resmi PDDikti dan rekam akademik repository."""
   if not target_init and not nim_in:
     return []
 
@@ -10,18 +10,14 @@ def generate_pddikti_dorks(target_init, company_or_city="", nim_in=""):
   clean_target = target_init.strip() if target_init else ""
   clean_nim = nim_in.strip() if nim_in else ""
 
-  # Target prioritas untuk pre-fill / referensi pencarian
   primary_query = clean_nim if clean_nim else clean_target
 
-  # 1. Direct Link ke Beranda Utama PDDikti (Portal Resmi Bebas Error 404)
+  # 1. Direct Link ke Beranda Utama PDDikti
   if primary_query:
-    direct_portal_url = (
-        "https://pddikti.kemdiktisaintek.go.id/?q="
-        f"{quote_plus(primary_query)}"
-    )
+    direct_portal_url = "https://pddikti.kemdiktisaintek.go.id/"
     dorks.append({
-        "title": "🏛️ [OFFICIAL] Buka Portal Utama PDDikti",
-        "query": f"Portal Query -> {primary_query}",
+        "title": "🏛️ [OFFICIAL] Buka Beranda Utama Portal PDDikti",
+        "query": f"Salin & Tempel Keyword -> {primary_query}",
         "link": direct_portal_url,
     })
 
