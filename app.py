@@ -118,7 +118,7 @@ with st.sidebar:
         "Username / Handle Medsos", placeholder="contoh: iqbalmantam"
     )
     name_in = st.text_input(
-        "Nama Lengkap Kandidat*", placeholder="contoh: Budi Santoso"
+        "Nama Lengkap Kandidat", placeholder="contoh: Budi Santoso"
     )
 
     with st.expander("⚙️ Refinement Filters (Opsional)"):
@@ -162,8 +162,8 @@ def mask_text(text, type_mode="email"):
 
 
 if btn_submit:
-    if not email_in or not phone_in or not name_in:
-        st.error("⚠️ Email, Nomor HP, dan Nama Lengkap Wajib Diisi sebagai Primary Key!")
+    if not email_in or not phone_in:
+        st.error("⚠️ Email dan Nomor HP Wajib Diisi sebagai Primary Key!")
     else:
         progress_bar = st.progress(
             0, text="Menginisialisasi Engine Investigasi OSINT..."
@@ -194,7 +194,7 @@ if btn_submit:
         time.sleep(0.1)
 
         progress_bar.progress(60, text="🎓 Menelusuri Database Akademik PDDikti...")
-        pddikti_res = asyncio.run(search_pddikti(name_in))
+        pddikti_res = asyncio.run(search_pddikti(name_in)) if name_in else {"mahasiswa": [], "dosen": []}
         time.sleep(0.1)
 
         progress_bar.progress(75, text="⚠️ Memeriksa Kebocoran Data (Breach)...")
