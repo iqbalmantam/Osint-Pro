@@ -80,29 +80,31 @@ st.caption(
 )
 st.divider()
 
-# Fungsi Asinkron untuk PDDikti API Publik (https://pddikti.rone.dev/api)
-async def search_pddikti(query):
+# Fungsi Cerdas Pencarian PDDikti dengan Pembersihan Query & Cadangan Dorking Resmi
+async def search_pddikti_smart(query):
     if not query:
-        return {"mahasiswa": [], "dosen": []}
+        return {"mahasiswa": [], "dosen": [], "official_url": ""}
     
+    clean_query = query.strip()
     base_url = "https://pddikti.rone.dev/api"
-    results = {"mahasiswa": [], "dosen": []}
+    results = {"mahasiswa": [], "dosen": [], "official_url": f"https://pddikti.kemdikbud.go.id/search/{quote_plus(clean_query)}"}
     
-    async with httpx.AsyncClient(timeout=10.0) as client:
+    async with httpx.AsyncClient(timeout=8.0) as client:
         try:
-            mhs_res = await client.get(f"{base_url}/search/mahasiswa", params={"q": query})
+            # Coba kueri utama
+            mhs_res = await client.get(f"{base_url}/search/mahasiswa", params={"q": clean_query})
             if mhs_res.status_code == 200:
                 results["mahasiswa"] = mhs_res.json()
         except:
             pass
 
         try:
-            dosen_res = await client.get(f"{base_url}/search/dosen", params={"q": query})
+            dosen_res = await client.get(f"{base_url}/search/dosen", params={"q": clean_query})
             if dosen_res.status_code == 200:
                 results["dosen"] = dosen_res.json()
         except:
             pass
-
+            
     return results
 
 # Sidebar Input & Refinement Filters
@@ -118,7 +120,7 @@ with st.sidebar:
         "Username / Handle Medsos", placeholder="contoh: iqbalmantam"
     )
     name_in = st.text_input(
-        "Nama Lengkap Kandidat", placeholder="contoh: Budi Santoso"
+        "Nama Lengkap Kandidat", placeholder="contoh: Iqbal Mantam"
     )
 
     with st.expander("⚙️ Refinement Filters (Opsional)"):
@@ -193,8 +195,8 @@ if btn_submit:
         )
         time.sleep(0.1)
 
-        progress_bar.progress(60, text="🎓 Menelusuri Database Akademik PDDikti...")
-        pddikti_res = asyncio.run(search_pddikti(name_in)) if name_in else {"mahasiswa": [], "dosen": []}
+        progress_bar.progress(60, text="🎓 Menelusuri Pangkalan Data PDDikti...")
+        pddikti_res = asyncio.run(search_pddikti_smart(name_in)) if name_in else {"mahasiswa": [], "dosen": [], "official_url": ""}
         time.sleep(0.1)
 
         progress_bar.progress(75, text="⚠️ Memeriksa Kebocoran Data (Breach)...")
@@ -318,9 +320,6 @@ if "osint_results" in st.session_state:
         st.markdown(
             f"* 📇 [Direct Web Portal GetContact Search]({res['telecom_links']['getcontact']})"
         )
-        st.markdown(
-            f"* 🔍 [Lookup Sync.ME Caller Database]({res['telecom_links']['syncme']})"
-        )
 
         st.divider()
         st.subheader(
@@ -380,30 +379,33 @@ if "osint_results" in st.session_state:
         st.subheader("🎓 PDDikti Academic Footprint Search")
         pddikti_data = res.get("pddikti_res", {})
         
+        # Shortcut resmi untuk bypass API yang kosong / Cloudflare
+        off_url = pddikti_data.get("official_url", "")
+        if off_url:
+            st.markdown(f"👉 **[Buka Halaman Pencarian Resmi PDDikti untuk '{res['name_in']}']({off_url})**")
+            st.caption("Gunakan tautan di atas untuk melihat data langsung di portal resmi Kemdikbud jika API pihak ketiga sedang membatasi kueri.")
+            st.divider()
+
         col_mhs, col_dsn = st.columns(2)
         with col_mhs:
-            st.markdown("#### 🧑‍🎓 Rekam Jejak Mahasiswa")
+            st.markdown("#### 🧑‍🎓 Rekam Jejak Mahasiswa (API)")
             mhs_list = pddikti_data.get("mahasiswa", [])
             if mhs_list:
                 st.success(f"Ditemukan {len(mhs_list)} entitas mahasiswa.")
                 for m in mhs_list:
                     st.markdown(f"- **Nama:** {m.get('text', 'N/A')}")
-                    if 'id' in m:
-                        st.caption(f"ID: {m.get('id')}")
             else:
-                st.info("Tidak ditemukan rekam jejak mahasiswa di PDDikti dengan nama tersebut.")
+                st.info("API publik tidak merespons. Silakan gunakan link shortcut resmi di atas.")
 
         with col_dsn:
-            st.markdown("#### 👨‍🏫 Rekam Jejak Dosen")
+            st.markdown("#### 👨‍🏫 Rekam Jejak Dosen (API)")
             dsn_list = pddikti_data.get("dosen", [])
             if dsn_list:
                 st.success(f"Ditemukan {len(dsn_list)} entitas dosen.")
                 for d in dsn_list:
                     st.markdown(f"- **Nama:** {d.get('text', 'N/A')}")
-                    if 'id' in d:
-                        st.caption(f"ID: {d.get('id')}")
             else:
-                st.info("Tidak ditemukan rekam jejak dosen di PDDikti dengan nama tersebut.")
+                st.info("API publik tidak merespons.")
 
     with tab4:
         st.subheader("🖼️ Reverse Image Search Engine")
