@@ -109,10 +109,9 @@ if "results" in st.session_state:
             
     st.divider()
 
-    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5 = st.tabs([
         "📱 Telecom & Identity", 
         "🌐 Social Matrix", 
-        "🎓 PDDikti Academic", 
         "🔎 Visual Search",
         "⚠️ Leak Intelligence", 
         "⚖️ Legal & Export"
@@ -162,13 +161,6 @@ if "results" in st.session_state:
             st.info("Masukkan Username atau Nama untuk memindai media sosial.")
 
     with tab3:
-        st.subheader("🎓 PDDikti Academic Footprint")
-        search_query = res['name'] if res['name'] else res['email'].split('@')[0]
-        search_url = f"https://pddikti.kemdikbud.go.id/search/{quote_plus(search_query)}"
-        st.markdown(f"👉 **[Klik di sini untuk mencari '{search_query}' di Portal Resmi PDDikti]({search_url})**")
-        st.info("Pencarian akademik diarahkan langsung ke portal resmi untuk hasil yang akurat dan menghindari pemblokiran API publik.")
-
-    with tab4:
         st.subheader("Reverse Image Search")
         avatar_url = res["identity"].get("gravatar", {}).get("avatar") or res["identity"].get("github", {}).get("avatar")
         if avatar_url:
@@ -178,7 +170,7 @@ if "results" in st.session_state:
         else:
             st.info("Tidak ada foto profil otomatis yang terdeteksi.")
 
-    with tab5:
+    with tab4:
         st.subheader("Data Leakage Check")
         if res['breach'].get("breached"):
             st.error("⚠️ Email terdeteksi dalam kebocoran data!")
@@ -186,7 +178,7 @@ if "results" in st.session_state:
         else:
             st.success("✅ Email bersih dari database kebocoran publik utama.")
 
-    with tab6:
+    with tab5:
         st.subheader("Legal Dorking & Report Export")
         for d in res['dorks']:
             st.markdown(f"##### {d['title']}")
