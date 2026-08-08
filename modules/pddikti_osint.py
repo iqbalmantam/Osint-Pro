@@ -1,41 +1,28 @@
-from urllib.parse import quote_plus
+import httpx
 
+async def search_pddikti(query):
+    """Melakukan pencarian data mahasiswa/dosen melalui PDDikti API publik."""
+    if not query:
+        return {"status": "error", "message": "Query kosong"}
+    
+    base_url = "https://pddikti.rone.dev/api"
+    results = {"mahasiswa": [], "dosen": []}
+    
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        try:
+            # 1. Cari Mahasiswa
+            mhs_res = await client.get(f"{base_url}/search/mahasiswa", params={"q": query})
+            if mhs_res.status_code == 200:
+                results["mahasiswa"] = mhs_res.json()
+        except:
+            pass
 
-def generate_pddikti_dorks(target_init, company_or_city="", nim_in=""):
-  """Membangun tautan ke portal resmi PDDikti dan rekam akademik repository."""
-  if not target_init and not nim_in:
-    return []
+        try:
+            # 2. Cari Dosen
+            dosen_res = await client.get(f"{base_url}/search/dosen", params={"q": query})
+            if dosen_res.status_code == 200:
+                results["dosen"] = dosen_res.json()
+        except:
+            pass
 
-  dorks = []
-  clean_target = target_init.strip() if target_init else ""
-  clean_nim = nim_in.strip() if nim_in else ""
-
-  primary_query = clean_nim if clean_nim else clean_target
-
-  # 1. Official Portal Link dengan teks referensi
-  if primary_query:
-    dorks.append({
-        "title": (
-            "🏛️ [OFFICIAL] Portal PDDikti (Salin NIM/Keyword di bawah, lalu"
-            " Paste ke Portal)"
-        ),
-        "query": primary_query,
-        "link": "https://pddikti.kemdiktisaintek.go.id/",
-    })
-
-  # 2. Google Dorking Cadangan
-  if clean_target:
-    extra_str = f' "{company_or_city.strip()}"' if company_or_city else ""
-    formatted_target = (
-        f'"{clean_target}"' if " " in clean_target else clean_target
-    )
-    q_repo = (
-        f"site:ac.id (filetype:pdf OR filetype:doc) {formatted_target}{extra_str}"
-    )
-    dorks.append({
-        "title": "📚 Pindai Karya Ilmiah/Skripsi (.ac.id)",
-        "query": q_repo,
-        "link": f"https://www.google.com/search?q={quote_plus(q_repo)}&nfpr=1",
-    })
-
-  return dorks
+    return results
