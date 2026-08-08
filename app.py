@@ -2,6 +2,7 @@ import asyncio
 import json
 import time
 from urllib.parse import quote_plus
+import httpx
 import pandas as pd
 import streamlit as st
 
@@ -79,6 +80,31 @@ st.caption(
 )
 st.divider()
 
+# Fungsi Asinkron untuk PDDikti API Publik (https://pddikti.rone.dev/api)
+async def search_pddikti(query):
+    if not query:
+        return {"mahasiswa": [], "dosen": []}
+    
+    base_url = "https://pddikti.rone.dev/api"
+    results = {"mahasiswa": [], "dosen": []}
+    
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        try:
+            mhs_res = await client.get(f"{base_url}/search/mahasiswa", params={"q": query})
+            if mhs_res.status_code == 200:
+                results["mahasiswa"] = mhs_res.json()
+        except:
+            pass
+
+        try:
+            dosen_res = await client.get(f"{base_url}/search/dosen", params={"q": query})
+            if dosen_res.status_code == 200:
+                results["dosen"] = dosen_res.json()
+        except:
+            pass
+
+    return results
+
 # Sidebar Input & Refinement Filters
 with st.sidebar:
     st.header("📌 Input Identitas Utama")
@@ -92,7 +118,7 @@ with st.sidebar:
         "Username / Handle Medsos", placeholder="contoh: iqbalmantam"
     )
     name_in = st.text_input(
-        "Nama Lengkap Kandidat", placeholder="contoh: Budi Santoso"
+        "Nama Lengkap Kandidat*", placeholder="contoh: Budi Santoso"
     )
 
     with st.expander("⚙️ Refinement Filters (Opsional)"):
@@ -136,28 +162,28 @@ def mask_text(text, type_mode="email"):
 
 
 if btn_submit:
-    if not email_in or not phone_in:
-        st.error("⚠️ Email dan Nomor HP Wajib Diisi sebagai Primary Key!")
+    if not email_in or not phone_in or not name_in:
+        st.error("⚠️ Email, Nomor HP, dan Nama Lengkap Wajib Diisi sebagai Primary Key!")
     else:
         progress_bar = st.progress(
             0, text="Menginisialisasi Engine Investigasi OSINT..."
         )
 
         progress_bar.progress(
-            20, text="📱 Menguraikan Provider Seluler & Format Kontak..."
+            15, text="📱 Menguraikan Provider Seluler & Format Kontak..."
         )
         phone_data = analyze_indonesia_phone(phone_in)
         telecom_links = generate_telecom_dorks(phone_data["intl_format"])
-        time.sleep(0.2)
+        time.sleep(0.1)
 
         progress_bar.progress(
-            40, text="👤 Melacak Identitas Utama (Gravatar & GitHub)..."
+            30, text="👤 Melacak Identitas Utama (Gravatar & GitHub)..."
         )
         identity_res = asyncio.run(check_email_identity(email_in))
-        time.sleep(0.2)
+        time.sleep(0.1)
 
         progress_bar.progress(
-            60, text="🌐 Memverifikasi Ketersediaan Media Sosial..."
+            45, text="🌐 Memverifikasi Ketersediaan Media Sosial..."
         )
         target_social_input = username_in if username_in else name_in
         social_res = (
@@ -165,16 +191,20 @@ if btn_submit:
             if target_social_input
             else []
         )
-        time.sleep(0.2)
+        time.sleep(0.1)
 
-        progress_bar.progress(80, text="⚠️ Memeriksa Kebocoran Data (Breach)...")
+        progress_bar.progress(60, text="🎓 Menelusuri Database Akademik PDDikti...")
+        pddikti_res = asyncio.run(search_pddikti(name_in))
+        time.sleep(0.1)
+
+        progress_bar.progress(75, text="⚠️ Memeriksa Kebocoran Data (Breach)...")
         breach_res = asyncio.run(check_data_breach(email_in))
         dorks = generate_indonesia_dorks(
             email_in, phone_data, username_in, name_in, city_in, company_in
         )
-        time.sleep(0.2)
+        time.sleep(0.1)
 
-        progress_bar.progress(95, text="📊 Menghitung Dynamic Risk Score...")
+        progress_bar.progress(90, text="📊 Menghitung Dynamic Risk Score...")
         active_social_count = (
             len([
                 s
@@ -208,7 +238,7 @@ if btn_submit:
             )
 
         progress_bar.progress(100, text="✅ Investigasi OSINT Selesai!")
-        time.sleep(0.4)
+        time.sleep(0.3)
         progress_bar.empty()
 
         st.session_state["osint_results"] = {
@@ -223,6 +253,7 @@ if btn_submit:
             "breach_res": breach_res,
             "dorks": dorks,
             "telecom_links": telecom_links,
+            "pddikti_res": pddikti_res,
             "risk_score": risk_score,
             "risk_notes": risk_notes,
             "is_breached": is_breached,
@@ -254,9 +285,10 @@ if "osint_results" in st.session_state:
 
     st.divider()
 
-    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
         "📱 Telecom & Identity",
         "🌐 Social Matrix",
+        "🎓 PDDikti Academic",
         "🔎 Visual Search",
         "⚠️ Leak Intelligence",
         "⚖️ Legal & Export",
@@ -284,7 +316,7 @@ if "osint_results" in st.session_state:
             f"* 📞 [Lookup Truecaller Portal (Login)]({res['telecom_links']['truecaller']})"
         )
         st.markdown(
-            f"* 📇 [Direct Web Portal GetContact]({res['telecom_links']['getcontact']})"
+            f"* 📇 [Direct Web Portal GetContact Search]({res['telecom_links']['getcontact']})"
         )
         st.markdown(
             f"* 🔍 [Lookup Sync.ME Caller Database]({res['telecom_links']['syncme']})"
@@ -345,6 +377,35 @@ if "osint_results" in st.session_state:
             )
 
     with tab3:
+        st.subheader("🎓 PDDikti Academic Footprint Search")
+        pddikti_data = res.get("pddikti_res", {})
+        
+        col_mhs, col_dsn = st.columns(2)
+        with col_mhs:
+            st.markdown("#### 🧑‍🎓 Rekam Jejak Mahasiswa")
+            mhs_list = pddikti_data.get("mahasiswa", [])
+            if mhs_list:
+                st.success(f"Ditemukan {len(mhs_list)} entitas mahasiswa.")
+                for m in mhs_list:
+                    st.markdown(f"- **Nama:** {m.get('text', 'N/A')}")
+                    if 'id' in m:
+                        st.caption(f"ID: {m.get('id')}")
+            else:
+                st.info("Tidak ditemukan rekam jejak mahasiswa di PDDikti dengan nama tersebut.")
+
+        with col_dsn:
+            st.markdown("#### 👨‍🏫 Rekam Jejak Dosen")
+            dsn_list = pddikti_data.get("dosen", [])
+            if dsn_list:
+                st.success(f"Ditemukan {len(dsn_list)} entitas dosen.")
+                for d in dsn_list:
+                    st.markdown(f"- **Nama:** {d.get('text', 'N/A')}")
+                    if 'id' in d:
+                        st.caption(f"ID: {d.get('id')}")
+            else:
+                st.info("Tidak ditemukan rekam jejak dosen di PDDikti dengan nama tersebut.")
+
+    with tab4:
         st.subheader("🖼️ Reverse Image Search Engine")
         avatar_url = res["identity_res"].get("gravatar", {}).get("avatar") or res[
             "identity_res"
@@ -377,7 +438,7 @@ if "osint_results" in st.session_state:
                 )
                 st.markdown(f"* [🔍 Lacak Foto Manual di Google Lens]({lens_url})")
 
-    with tab4:
+    with tab5:
         st.subheader("⚠️ Data Leakage Check")
         if res["breach_res"].get("breached"):
             st.error(
@@ -389,7 +450,7 @@ if "osint_results" in st.session_state:
                 "✅ Email ini bersih dan tidak terdeteksi dalam insiden kebocoran data publik besar."
             )
 
-    with tab5:
+    with tab6:
         st.subheader("⚖️ Legal Dorking & Report Multi-Format Export")
         for d in res["dorks"]:
             st.markdown(f"##### {d['title']}")
