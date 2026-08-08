@@ -42,7 +42,7 @@ st.divider()
 with st.sidebar:
     st.header("📌 Input Identitas")
     email_in = st.text_input("Email Utama*", placeholder="contoh: kandidat@gmail.com")
-    phone_in = st.text_input("Nomor HP (Indonesia)*", placeholder="contoh: 08123456789")
+    phone_in = st.text_input("Nomor HP (Indonesia)", placeholder="contoh: 08123456789")
     username_in = st.text_input("Username / Handle Medsos")
     name_in = st.text_input("Nama Lengkap Kandidat", placeholder="contoh: Iqbal Mantam")
     btn_submit = st.button("🚀 Jalankan Investigasi", type="primary", use_container_width=True)
@@ -56,11 +56,14 @@ def mask_text(text, type_mode="email"):
     return text
 
 if btn_submit:
-    if not email_in or not phone_in:
-        st.error("⚠️ Email dan Nomor HP Wajib Diisi!")
+    if not email_in:
+        st.error("⚠️ Email Utama Wajib Diisi!")
     else:
+        # Penanganan jika nomor HP kosong
+        clean_phone = phone_in if phone_in else "08000000000"
+        
         # Proses Investigasi
-        phone_data = analyze_indonesia_phone(phone_in)
+        phone_data = analyze_indonesia_phone(clean_phone)
         telecom_links = generate_telecom_dorks(phone_data["intl_format"])
         identity_res = asyncio.run(check_email_identity(email_in))
         social_res = asyncio.run(check_indonesia_socials(username_in if username_in else name_in))
@@ -89,13 +92,14 @@ if "results" in st.session_state:
 
     with tab3:
         st.subheader("🎓 PDDikti Academic Footprint")
-        search_url = f"https://pddikti.kemdikbud.go.id/search/{quote_plus(res['name'])}"
-        st.markdown(f"👉 **[Klik di sini untuk mencari '{res['name']}' di Portal Resmi PDDikti]({search_url})**")
-        st.info("Pencarian akademik kini diarahkan langsung ke portal resmi untuk hasil yang akurat.")
+        search_url = f"https://pddikti.kemdikbud.go.id/search/{quote_plus(res['name'])}" if res['name'] else "https://pddikti.kemdikbud.go.id"
+        st.markdown(f"👉 **[Klik di sini untuk mencari '{res['name'] or res['email']}' di Portal Resmi PDDikti]({search_url})**")
+        st.info("Pencarian akademik diarahkan langsung ke portal resmi untuk hasil yang akurat.")
 
     with tab4:
         if res['breach'].get("breached"):
             st.error("⚠️ Email terdeteksi dalam kebocoran data!")
+            st.json(res['breach'].get("data"))
         else:
             st.success("✅ Email bersih.")
 
