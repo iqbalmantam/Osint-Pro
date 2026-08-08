@@ -156,7 +156,17 @@ if "results" in st.session_state:
         st.subheader("Matrix Media Sosial")
         if res.get('social'):
             df_s = pd.DataFrame(res['social'])
-            st.dataframe(df_s[["platform", "status_check", "direct_url", "dork_url"]], use_container_width=True, hide_index=True)
+            st.dataframe(
+                df_s[["platform", "status_check", "direct_url", "dork_url"]],
+                column_config={
+                    "platform": "Platform Target",
+                    "status_check": "Verifikasi Status",
+                    "direct_url": st.column_config.LinkColumn("Buka Profil Direct"),
+                    "dork_url": st.column_config.LinkColumn("Buka Google Dork"),
+                },
+                use_container_width=True, 
+                hide_index=True
+            )
         else:
             st.info("Masukkan Username atau Nama untuk memindai media sosial.")
 
