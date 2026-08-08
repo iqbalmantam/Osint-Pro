@@ -163,9 +163,10 @@ if "results" in st.session_state:
 
     with tab3:
         st.subheader("🎓 PDDikti Academic Footprint")
-        search_url = f"https://pddikti.kemdikbud.go.id/search/{quote_plus(res['name'])}" if res['name'] else "https://pddikti.kemdikbud.go.id"
-        st.markdown(f"👉 **[Klik di sini untuk mencari '{res['name'] or res['email']}' di Portal Resmi PDDikti]({search_url})**")
-        st.info("Pencarian akademik diarahkan langsung ke portal resmi untuk hasil yang akurat.")
+        search_query = res['name'] if res['name'] else res['email'].split('@')[0]
+        search_url = f"https://pddikti.kemdikbud.go.id/search/{quote_plus(search_query)}"
+        st.markdown(f"👉 **[Klik di sini untuk mencari '{search_query}' di Portal Resmi PDDikti]({search_url})**")
+        st.info("Pencarian akademik diarahkan langsung ke portal resmi untuk hasil yang akurat dan menghindari pemblokiran API publik.")
 
     with tab4:
         st.subheader("Reverse Image Search")
